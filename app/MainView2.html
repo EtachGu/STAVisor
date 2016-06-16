@@ -1,0 +1,97 @@
+<div class="row">
+    <section class="col-md-2 col-sm-2 connectedSortable">
+
+        <div class="box box-success" ng-controller="ParameterCtrl" >
+            <div class="box-header with-border">
+                <h3 class="box-title">ParaController</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <uib-tabset active="Map">
+                    <!-- Tabs within a box -->
+                    <uib-tab index="0" heading="Map">
+                        <div style="position: relative; height: 300px;">
+                            <input type="text" value="" class="slider form-control" data-slider-min="-200" data-slider-max="200" data-slider-step="5" data-slider-value="[-100,100]" data-slider-orientation="vertical" data-slider-selection="before" data-slider-tooltip="show" data-slider-id="red">
+                            <input type="text" value="" class="slider form-control" data-slider-min="-200" data-slider-max="200" data-slider-step="5" data-slider-value="[-100,100]" data-slider-orientation="vertical" data-slider-selection="before" data-slider-tooltip="show" data-slider-id="red">
+                            <input id="range_2" type="text" name="range_2" value="1000;100000" data-type="double" data-step="500" data-postfix=" &euro;" data-from="30000" data-to="90000" data-hasgrid="true">
+                        </div>
+
+                    </uib-tab>
+                    <uib-tab index="1" heading="Query">
+                        <div style="position: relative; height: 300px;">
+                            <div class="form-group">
+                                <label for="TNumber">Car Number</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-car"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="TNumber" placeholder="鄂AXW753">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="TStartTime">Start Date</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="date" class="form-control pull-right" id="TStartTime" value="2013-03-01">
+                                </div><!-- /.input group -->
+                            </div>
+                            <div class="form-group">
+                                <label for="TEndTime">End Date</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="date" class="form-control pull-right" id="TEndTime" value="2014-06-01">
+                                </div><!-- /.input group -->
+                            </div>
+                            <button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>
+                            <button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>
+                        </div>
+
+                    </uib-tab>
+                    <uib-tab index="2" heading="StackBar">
+                        <div style="position: relative; height: 300px;">
+                            <button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>
+                        </div>
+                    </uib-tab>
+                </uib-tabset><!-- /.nav-tabs-custom -->
+
+            </div><!-- /.box-body -->
+
+
+        </div><!-- /.box -->
+
+
+
+    </section><!-- /.col -->
+    <section class="col-md-5 col-sm-5 connectedSortable" id="seqBox">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">MapView</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body no-padding">
+                <div class="pad">
+                    <!-- Map will be created here -->
+                    <div id="map" my-map-chart ></div>
+                </div>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+        <div class="box box-primary" my-line-chart="TimeGraph"></div>
+
+    </section>
+    <section class="col-ma-5 col-sm-5 connectedSortable ">
+        <div class="box" my-graph-chart="RelationGraph"></div><!-- /.box -->
+        <div class="box box-primary"my-stack-bar-chart="StackBarChart" ></div>
+    </section>
+</div>
+
+
+
+

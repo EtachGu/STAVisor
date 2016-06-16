@@ -1,0 +1,131 @@
+<link href="css/mapLayers.css" rel="stylesheet">
+<div class="row">
+    <section class="col-md-3 col-sm-4 connectedSortable">
+
+        <div class="box box-success" ng-controller="ParameterCtrl" >
+            <div class="box-header with-border">
+                <h3 class="box-title">ParaController</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <uib-tabset active="Map">
+                    <!-- Tabs within a box -->
+                    <uib-tab index="0" heading="Map">
+                        <div style="position: relative; height: 300px;">
+                            <section class="map-layers">
+                                <ul class="layers-set">
+                                    <li class="treeview">
+                                        <a href="">
+                                            <i class="fa fa-th-list"></i> <span>Layers</span> <i class="fa fa-angle-left pull-right"></i>
+                                        </a>
+                                        <ul class="layers-tree todo-list">
+                                            <li>
+                                            <!-- checkbox -->
+                                                <input type="checkbox" value="" name="">
+                                                <!-- drag handle -->
+                                                <span class="handle">
+                                                    <i class="fa fa-map"></i>
+                                                </span>
+                                                <!-- todo text -->
+                                                <span class="text">Wuhan</span>
+                                                <!-- General tools such as edit or delete-->
+                                                <div class="tools">
+                                                    <i class="fa fa-edit" ng-click="mapLayerEdit()"></i>
+                                                    <i class="fa fa-trash-o"></i>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <input type="checkbox" value="" name="">
+                                                <span class="handle">
+                                                <i class="fa fa-car"></i>
+                                                </span>
+                                                <span class="text">Trajectory</span>
+                                                <div class="tools">
+                                                    <i class="fa fa-edit" ng-click="trajLayerEdit()"></i>
+                                                    <i class="fa fa-trash-o"></i>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </section>
+                        </div>
+                    </uib-tab>
+                    <uib-tab index="1" heading="Query">
+                        <div style="position: relative; height: 300px;">
+                            <div class="form-group">
+                                <label for="TNumber">Car Number</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-car"></i>
+                                    </div>
+                                    <input type="text" class="form-control" id="TNumber" placeholder="鄂AXW753">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="TStartTime">Start Date</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="date" class="form-control pull-right" id="TStartTime" value="2013-03-01">
+                                </div><!-- /.input group -->
+                            </div>
+                            <div class="form-group">
+                                <label for="TEndTime">End Date</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </div>
+                                    <input type="date" class="form-control pull-right" id="TEndTime" value="2014-06-01">
+                                </div><!-- /.input group -->
+                            </div>
+                            <button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>
+                            <button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>
+                        </div>
+
+                    </uib-tab>
+                    <uib-tab index="2" heading="StackBar">
+                        <div style="position: relative; height: 300px;">
+                            <button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>
+                        </div>
+                    </uib-tab>
+                </uib-tabset><!-- /.nav-tabs-custom -->
+
+            </div><!-- /.box-body -->
+
+
+        </div><!-- /.box -->
+
+        <div class="box" my-graph-chart="RelationGraph">
+        </div><!-- /.box -->
+
+    </section><!-- /.col -->
+    <section class="col-md-9 col-sm-8 connectedSortable" id="seqBox">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">MapView</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body no-padding">
+                <div class="pad">
+                    <!-- Map will be created here -->
+                    <div id="map" my-map-chart ></div>
+                </div>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+
+        <div class="box box-primary" my-line-chart="TimeGraph"></div>
+        <div class="box box-primary" my-stack-bar-chart="StackBarChart" ></div>
+
+    </section>
+</div>
+
+
+
+
+

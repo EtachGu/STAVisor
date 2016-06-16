@@ -1,0 +1,123 @@
+<div class="row">
+    <section class="col-md-3 col-sm-4 connectedSortable">
+
+        <div class="box box-success" ng-controller="queryCtrl" >
+            <div class="box-header with-border">
+                <h3 class="box-title">QueryTool</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <div class="form-group">
+                    <label for="TNumber">Car Number</label>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <i class="fa fa-car"></i>
+                        </div>
+                        <input type="text" class="form-control" id="TNumber" placeholder="鄂AXW753">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="TStartTime">Start Date</label>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        <input type="date" class="form-control pull-right" id="TStartTime" value="2013-03-01">
+                    </div><!-- /.input group -->
+                </div>
+                <div class="form-group">
+                    <label for="TEndTime">End Date</label>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                        <input type="date" class="form-control pull-right" id="TEndTime" value="2014-06-01">
+                    </div><!-- /.input group -->
+                </div>
+                <button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>
+                <button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>
+            </div><!-- /.box-body -->
+
+
+        </div><!-- /.box -->
+
+        <div class="box" ng-controller="RelationGraphCtrl">
+            <div class="box-header with-border">
+                <h3 class="box-title">RelationGraph</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body no-padding">
+                <div id="relationGraph">
+                </div>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+
+    </section><!-- /.col -->
+    <section class="col-md-9 col-sm-8 connectedSortable">
+        <div class="box box-success" ng-controller="MapCtrl">
+            <div class="box-header with-border">
+                <h3 class="box-title">Trajectories</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div><!-- /.box-header -->
+            <div class="box-body no-padding">
+                <div class="pad">
+                    <!-- Map will be created here -->
+                    <div id="map"  ></div>
+                </div>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+
+        <div class="box box-primary"  ng-controller="EventTimeGraphCtrl">
+            <div class="box-header">
+                <h3 class="box-title">TimeGraph</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body" id="eventTimeGraph">
+            </div>
+        </div>
+        <div class="box box-primary " ng-controller="StackedBarChartsCtrl">
+            <div class="box-header">
+                <h3 class="box-title">StackBarCharts</h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="btn-group pull-right">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                    Events per hour<span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a class="m" value="2014-02-19">2013-03-25</a></li>
+                        <li><a class="m" value="2014-02-20">2013-03-26</a></li>
+                        <li><a class="m" value="2014-02-21" >2013-03-27</a></li>
+                        <li><a class="m" value="2014-02-22">2013-03-28</a></li>
+                        <li><a class="m" value="2014-02-23">2013-03-29</a></li>
+                    </ul>
+                </div>
+                <div id="mbars">
+                </div>
+            </div>
+        </div>
+
+
+    </section>
+</div>
+
+
+
+
+

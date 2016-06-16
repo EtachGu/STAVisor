@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Viewer.html</title>
+	
+    <meta name="keywords" content="keyword1,keyword2,keyword3">
+    <meta name="description" content="The Viewer">
+    <meta name="content-type" content="text/html; charset=utf-8">
+    
+    <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+    <script src="lib/d3/d3.min.js"  type="text/javascript"  ></script>
+	<script src="lib/jquery/dist/jquery.min.js"></script>
+      <script src="lib/angular/angular.js"></script>
+  </head>
+  
+  <body>
+  <script type="text/javascript" >
+  
+   		var width = 1000; 
+		
+ 		var height = 1000; 
+  
+   //获得地图的中心 获得center
+            function getCenters(features){
+                    var longitudeMin = 100000;//最小经度值
+                    var latitudeMin = 100000;//最小纬度值
+                    var longitudeMax = 0;//最大经度值
+                    var latitudeMax = 0;//最大纬度值
+                   /*  features.forEach(function(e){  
+                        var a = d3.geo.bounds(e);//[为某个对象计算经纬度  d3.geo.bounds - compute the latitude-longitude bounding box for a given feature]
+                        if(a[0][0] < longitudeMin) {
+                            longitudeMin = a[0][0];
+                        }
+                        if(a[0][1] < latitudeMin) {
+                            latitudeMin = a[0][1];
+                        }
+                        if(a[1][0] > longitudeMax) {
+                            longitudeMax = a[1][0];
+                        }
+                        if(a[1][1] > latitudeMax) {
+                            latitudeMax = a[1][1];
+                        }
+                    }); */
+                 
+                 
+                        var a = d3.geo.bounds(features);//[为某个对象计算经纬度  d3.geo.bounds - compute the latitude-longitude bounding box for a given feature]
+                        if(a[0][0] < longitudeMin) {
+                            longitudeMin = a[0][0];
+                        }
+                        if(a[0][1] < latitudeMin) {
+                            latitudeMin = a[0][1];
+                        }
+                        if(a[1][0] > longitudeMax) {
+                            longitudeMax = a[1][0];
+                        }
+                        if(a[1][1] > latitudeMax) {
+                            latitudeMax = a[1][1];
+                        }
+                    
+                 
+                    var a = (longitudeMax + longitudeMin)/2;
+                    var b = (latitudeMax + latitudeMin)/2;
+                 
+                    return [a, b];
+                }
+             
+            //设置地图的大小 获得 scale
+            function getZoomScale(features, width, height){
+                        var longitudeMin = 100000;//最小经度值
+                        var latitudeMin = 100000;//最小纬度值
+                        var longitudeMax = 0;//最大经度值
+                        var latitudeMax = 0;//最大纬度值
+                      /*   features.forEach(function(e){  
+                            var a = d3.geo.bounds(e);//[为某个对象计算经纬度  d3.geo.bounds - compute the latitude-longitude bounding box for a given feature]
+                            if(a[0][0] < longitudeMin) {
+                                longitudeMin = a[0][0];
+                            }
+                            if(a[0][1] < latitudeMin) {
+                                latitudeMin = a[0][1];
+                            }
+                            if(a[1][0] > longitudeMax) {
+                                longitudeMax = a[1][0];
+                            }
+                            if(a[1][1] > latitudeMax) {
+                                latitudeMax = a[1][1];
+                            }
+                        }); */
+                        
+                        
+                         var a = d3.geo.bounds(features);//[为某个对象计算经纬度  d3.geo.bounds - compute the latitude-longitude bounding box for a given feature]
+                            if(a[0][0] < longitudeMin) {
+                                longitudeMin = a[0][0];
+                            }
+                            if(a[0][1] < latitudeMin) {
+                                latitudeMin = a[0][1];
+                            }
+                            if(a[1][0] > longitudeMax) {
+                                longitudeMax = a[1][0];
+                            }
+                            if(a[1][1] > latitudeMax) {
+                                latitudeMax = a[1][1];
+                            }
+                     
+                        var a = longitudeMax-longitudeMin;
+                        var b = latitudeMax-latitudeMin;
+                        /*if(a > b) {  //
+                            return width/a;
+                        } else {
+                            return height/b;
+                        }*/
+                     
+                        return Math.min(width/a, height/b);
+                    }
+  
+  
+  
+       var data; // a global
+       var mapData; 
+       
+       
+       var projection = d3.geo.mercator()
+						    .center([114, 31])
+						    .scale(50000)
+						    .translate([500, 500]); 
+						    
+       var path = d3.geo.path()
+        			    .projection(projection);
+     
+    
+       var svg = d3.select("body").append("svg")
+ 				  .attr("width",width)
+ 				  .attr("height", height);
+ 				  
+ 	   var g = svg.append("g")
+    	 			.call(d3.behavior.zoom()
+    	 				  .scaleExtent([1,10]))
+    	 				  .on("zoom",zoom);
+       
+       function visualizeit()
+       {
+    	    var centers = getCenters(data); 
+		   var zoomScale = getZoomScale(data, width, height);
+		   
+		   var projection = d3.geo.mercator()
+						    .center(centers)
+						    .scale(100000)
+						    .translate([width/4, height/5])
+						    .precision(.001); 
+						    
+		   var path = d3.geo.path()
+        			   .projection(projection); 
+    	  
+    	  var color = d3.scale.category20();	 
+    	     	
+    	   svg.append("path")
+    	     	 .datum(data)
+    	 		 .attr("d",path)
+    	         .style("opacity", 0.5)
+    	         .attr("fill", function(d,i){
+					return color(i);
+				}); 
+    	         
+  /*   	   svg.selectAll("path")
+    	     	 .data(data)
+    	 		 .enter().append("path")
+    	         .attr("d",path)
+    	         .attr("stroke","#000")
+        		 .attr("stroke-width",1) 
+                 .attr("fill", function(d,i){
+					return color(i);
+				}); */
+    	           
+       }
+       
+       function rendermap()
+       {
+             var color = d3.scale.category20();	 
+        	
+        	g.append("path")
+    	     	 .datum(mapData)
+    	 		 .attr("stroke","#000")
+				.attr("stroke-width",1)
+				.attr("fill", function(d,i){
+					return color(i);
+				})
+				.attr("d", path );
+        	 
+	    /* 	 svg.selectAll("path")
+				.data( mapData.features )
+				.enter()
+				.append("path")
+				.attr("stroke","#000")
+				.attr("stroke-width",1)
+				.attr("fill", function(d,i){
+					return color(i);
+				})
+				.attr("d", path ); */
+       }
+        
+	    function zoom()
+    	{
+    	 	g.attr("transform","translate("
+    	 	       + d3.event.translate
+    	 	       + ")scale(" + d3.event.scale +")");
+    	}
+    	
+		function load()
+		{
+			
+		    d3.json("data.json", function(error, json2) {
+			  if (error) return console.warn(error);
+			  data = json2;
+			  visualizeit();
+			});
+		}
+		
+		function load2()
+        {
+        			
+			d3.json("hubei.geojson",function(error,json){
+			   if (error) 
+					return console.error(error);
+				
+			     mapData = json;
+			     rendermap();
+			});	
+		}
+		
+		
+		
+		function showHint()
+		{
+			var tID = "";
+		    var tOwner = "";		   
+		    var carNumber = document.getElementById("TNumber").value;
+		    var tStartTime = document.getElementById("TStartTime").value;
+		    var tEndTime = document.getElementById("TEndTime").value;
+		    
+		    
+		    
+			var xmlhttp;
+			if (carNumber.length==0)
+		  	{ 
+		  		document.getElementById("txtHint").innerHTML="";
+		  		return;
+		  	}
+			if (window.XMLHttpRequest)
+			{
+			     // code for IE7+, Firefox, Chrome, Opera, Safari
+			  	xmlhttp=new XMLHttpRequest();
+			}
+			else
+			{
+			  	// code for IE6, IE5
+			   	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			xmlhttp.onreadystatechange=function()
+			{
+			  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+			  {
+			      document.getElementById("txtHint").innerHTML=xmlhttp.responseText;
+			      
+			      data = xmlhttp.responseText;
+			      
+			      visualizeit();
+			  }
+			};
+			
+			var url = "http://localhost:8080/DataVisualor/ServletJson?"+
+					  "TID="+tID+"&"+
+					  "TOwner="+tOwner+"&"+
+					  "TNumber="+carNumber+"&"+
+					  "TStartTime="+tStartTime+"&"+
+					  "TEndTime=" + tEndTime ;
+			xmlhttp.open("GET",url,true);
+			xmlhttp.send();
+			
+			
+		}
+		
+		
+		 	var xmlhttp1;
+			if (window.XMLHttpRequest)
+			{
+			     // code for IE7+, Firefox, Chrome, Opera, Safari
+			  	xmlhttp1=new XMLHttpRequest();
+			}
+			else
+			{
+			  	// code for IE6, IE5
+			   	xmlhttp1=new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			xmlhttp1.onreadystatechange=function()
+			{
+			  if (xmlhttp1.readyState==4 && xmlhttp1.status==200)
+			  {
+			      document.getElementById("trajectoryTable").innerHTML=xmlhttp1.responseText;
+			  }
+			};
+			xmlhttp1.open("GET","http://localhost:8080/DataVisualor/TraTableSevlet",true);
+			xmlhttp1.send();
+
+    </script>
+    
+      	<div id="trajectoryTable"   style=" overflow:scroll;height: 300px; width:500px;"></div>
+	    <p>车牌号: <input type="text" id="TNumber" /></p>
+	    <p>起始日期：<input type="date" id="TStartTime" value="2013-03-01" /> </p>
+	    <p>终止日期：<input type="date" id="TEndTime" value="2014-06-01"/> </p>
+	    
+  		<button type="button" onclick="showHint()" >查询</button>
+  		<button type="button" onclick="load2()" >地图</button>
+		<div id="txtHint" > </div>
+    
+  </body>
+</html>

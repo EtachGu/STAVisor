@@ -1,0 +1,61 @@
+<!--&lt;!&ndash; DataTables &ndash;&gt;-->
+<!--<link rel="stylesheet" href="lib/ALTE/datatables/dataTables.bootstrap.css">-->
+<!--<h2 class="sub-header">Table</h2>-->
+<!--<div class="table-responsive">-->
+<!--<table class="table  table-condensed table-hover" data-click-to-select="true" id="infoTable" my-info-table-directive>-->
+<!--</table>-->
+<!--<h2 id="dashbord" class="sub-header">Dashborad</h2>-->
+<!--</div>-->
+<!--<div my-data-base-table="">-->
+
+<!--</div>-->
+
+
+
+<!-- DataTables -->
+<link rel="stylesheet" type="text/css" href="lib/ALTE/datatables/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="lib/ALTE/daterangepicker/daterangepicker-bs3.css">
+<!--<link rel="stylesheet" href="lib/ALTE/datatables/dataTables.bootstrap.css">-->
+
+
+<!--<div my-data-base-table>-->
+<!--</div>&lt;!&ndash; /.box &ndash;&gt;-->
+
+
+<div class="box">
+    <div class="box-header">
+        <div class="col-sm-8">
+            <h3 class="box-title">Data Table With Full Features</h3>
+        </div>
+        <div class="col-sm-3">
+            <p>{{selectedrows}} rows selected</p>
+        </div>
+        <div class="col-sm-1">
+            <div class="box-tools pull-right">
+                <div class="btn-group">
+                    <button class="btn btn-box-tool btn-sm daterange pull-right" data-toggle="tooltip" title="Date range"><i class="fa fa-calendar"></i></button>
+                    <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li><a ng-href="{{showUrl}}" ng-click="showSelect()">Show Select</a></li>
+                        <li><a href="" ng-click="refresh()">refresh</a></li>
+                        <li class="divider"></li>
+                        <li><a href="">View</a></li>
+                    </ul>
+                </div>
+                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <!--<button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>-->
+            </div>
+        </div>
+    </div><!-- /.box-header -->
+    <div class="box-body">
+        <table id="example1" class="table table-bordered" my-temp-data-base-table title="{{isNewTable}}" ng-click="tableClick()" >
+        </table>
+    </div><!-- /.box-body -->
+</div><!-- /.box -->
+
+
+<!-- DataTables -->
+<script src="lib/ALTE/datatables/jquery.dataTables.min.js"></script>
+<script src="lib/ALTE/datatables/dataTables.bootstrap.min.js"></script>
+<script src="lib/ALTE/daterangepicker/moment.js"></script>
+<script src="lib/ALTE/daterangepicker/daterangepicker.js"></script>

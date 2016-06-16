@@ -1,0 +1,113 @@
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic);
+/*!
+ *  STAVisor
+ *   Author: Danpeng Gu
+ *
+ */
+
+
+
+/*
+ * Component: Sidebar
+ * ------------------
+ */
+ .map-layers{
+    padding-bottom: 10px;
+}
+.layers-set input:focus {
+    border-color: transparent;
+}
+.layers-set {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.layers-set > li {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+.layers-set > li > a {
+    padding: 12px 5px 12px 15px;
+    display: block;
+}
+.layers-set > li > a > .fa,
+.layers-set > li > a > .glyphicon,
+.layers-set > li > a > .ion {
+    width: 20px;
+}
+.layers-set > li .label,
+.layers-set > li .badge {
+    margin-top: 3px;
+    margin-right: 5px;
+}
+.layers-set li.header {
+    padding: 10px 25px 10px 15px;
+    font-size: 12px;
+}
+.layers-set li > a > .fa-angle-left {
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin-right: 10px;
+    margin-top: 3px;
+}
+.layers-set li.active > a > .fa-angle-left {
+    -webkit-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+.layers-set li.active > .layers-tree {
+    display: block;
+}
+.layers-set .layers-tree {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    padding-left: 5px;
+}
+.layers-set .layers-tree {
+    padding-left: 20px;
+}
+.layers-set .layers-tree > li {
+    margin: 0;
+}
+.layers-set .layers-tree > li > a {
+    padding: 5px 5px 5px 15px;
+    display: block;
+    font-size: 14px;
+}
+.layers-set .layers-tree > li > a > .fa,
+.layers-set .layers-tree > li > a > .glyphicon,
+.layers-set .layers-tree > li > a > .ion {
+    width: 20px;
+}
+.layers-set .layers-tree > li > a > .fa-angle-left,
+.layers-set .layers-tree > li > a > .fa-angle-down {
+    width: auto;
+}
+
+.layers-set,
+.layers-set > li.header {
+    white-space: nowrap;
+    overflow: hidden;
+}
+.layers-set:hover {
+    overflow: visible;
+}
+
+.layers-set > li.header {
+    overflow: hidden;
+    text-overflow: clip;
+}
+.layers-set li > a {
+    position: relative;
+}
+.layers-set li > a > .pull-right {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -7px;
+}

@@ -1,0 +1,59 @@
+<div class="box">
+    <div class="box-header">
+        <div class="col-sm-8">
+            <h3 class="box-title">Data Table With Full Features</h3>
+        </div>
+        <div class="col-sm-3">
+            <p>{{selectedrows}} rows selected</p>
+        </div>
+        <div class="col-sm-1">
+            <div class="box-tools pull-right">
+                <div class="btn-group">
+                    <button class="btn btn-box-tool"><i class="fa fa-calendar"></i></button>
+                    <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li><a href="{{showUrl}}" ng-click="showSelect()">Show Select</a></li>
+                        <li><a href="">Clear events</a></li>
+                        <li class="divider"></li>
+                        <li><a href="">View calendar</a></li>
+                    </ul>
+                </div>
+                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                <!--<button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>-->
+            </div>
+        </div>
+    </div><!-- /.box-header -->
+    <div class="box-body">
+
+        <table id="example1" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Rendering engine</th>
+                <th>Browser</th>
+                <th>Platform(s)</th>
+                <th>Engine version</th>
+                <th>CSS grade</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Trident</td>
+                <td>Internet
+                    Explorer 4.0</td>
+                <td>Win 95+</td>
+                <td> 4</td>
+                <td>X</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <th>Rendering engine</th>
+                <th>Browser</th>
+                <th>Platform(s)</th>
+                <th>Engine version</th>
+                <th>CSS grade</th>
+            </tr>
+            </tfoot>
+        </table>
+    </div><!-- /.box-body -->
+</div><!-- /.box -->
