@@ -258,6 +258,13 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         service.endDate = endDate;
     };
 
+    service.getDateRange = function () {
+        var dateRange ={};
+        dateRange.startDate =  this.startDate;
+        dateRange.endDate =  this.endDate;
+        return dateRange;
+    }
+
 
     service.getTrajUrlByCarNumber = function (carNumber,typeFeature) {
 
@@ -276,8 +283,29 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return url;
     };
 
+    service.getEventsJsonUrlSet = function () {
 
-    
+        var tStartTime = this.startDate;
+        var tEndTime = this.endDate;
+
+        var urlSet = [];
+
+        for(var i=0;i<this.selectData.length;i++){
+            var carNumber = this.selectData[i][0];
+
+            var url = "http://localhost:8080/DataVisualor/EventServletJson?"+
+            "TID=&"+
+            "TOwner=&"+
+            "TNumber="+carNumber+"&"+
+            "TStartTime="+tStartTime+"&"+
+            "TEndTime=" + tEndTime;
+
+            urlSet[i] = url;
+        }
+
+        return urlSet;
+    };
+
 
     service.setInfoDataTable  = function () {
 
@@ -291,6 +319,27 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return service.url;
     };
 
+
+    service.setSelectData = function (data) {
+        if(service.selectData == data) {
+            return;
+        }else{
+            service.selectData = data;
+            service.isMapUpdate = true;
+        }
+
+    };
+
+    service.getSelectData = function () {
+        return service.selectData;
+    };
+
+    service.isSelectDataExist = function () {
+
+        return service.selectData && service.selectData.length > 0;
+    };
+
+    service.isMapUpdate = false;
 
     service.callDatabase = function () {
 
@@ -326,25 +375,6 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return deferred.promise;
     };
 
-    service.setSelectData = function (data) {
-        if(service.selectData == data) {
-            return;
-        }else{
-            service.selectData = data;
-            service.isMapUpdate = true;
-        }
-
-    };
-
-    service.getSelectData = function () {
-        return service.selectData;
-    };
-
-    service.isSelectDataExist = function () {
-
-        return service.selectData && service.selectData.length > 0;
-    };
-
     service.callTrajectoryData = function () {
         var deferred = $q.defer();
 
@@ -356,7 +386,37 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return deferred.promise;
     };
 
-    service.isMapUpdate = false;
+    service.callEventData = function () {
+
+        var geoJsonFileSet = this.getEventsJsonUrlSet();
+
+        var deferred = $q.defer();
+
+        var urlCalls = [];
+
+        angular.forEach(geoJsonFileSet, function(url) {
+            urlCalls.push($http.get(url,{cache:true}));
+        });
+
+        // they may, in fact, all be done, but this
+        // executes the callbacks in then, once they are
+        // completely finished.
+
+        $q.all(urlCalls)
+            .then(
+                function(results) {
+                    deferred.resolve(JSON.stringify(results));
+                },
+                function(errors) {
+                    deferred.reject(errors);
+                },
+                function(updates) {
+                    deferred.update(updates);
+                });
+
+        return deferred.promise;
+
+    };
 
     return service;
 

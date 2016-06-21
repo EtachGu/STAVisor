@@ -293,28 +293,37 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
         transclude: false,
         templateUrl:'template/visualtoolhtml/boxTemplate.html',
         controller: function ($scope,$element,$transclude,$http) {
-            
+
+            var selectedData = ActiveDataFactory.getSelectData();
+            var dateRange = ActiveDataFactory.getDateRange();
+
+
+
         },
         link:{
                 pre: function (tElement,tAttrs,transclude) {
 
                 },
                 post:function (scope,iElement,iAttrs,controller) {
+
+                    var month = 30 * 24 * 60 * 60 * 1000;
+                    var hours = 60 * 60 * 1000;
+                    var endTime = 0;
+                    var startTime = Date.now();
+
+                    var EventData = [];
+
+
                     // event time graph
-                    function renderTimeGraph()
-                    {
-                        if (data.length==geoJsonFileSet.length) {
+                    function renderTimeGraph(data) {
+                        if (data.length > 0) {
                             var color = d3.scale.category10();
 
-                            for(var i=0;i<data.length;i++)
-                            {
-                                data[i].name=trackName[i];
-                            }
                             var boxTitle = iElement[0].children[0].children[0];
                             boxTitle.innerText = iElement.attr('my-line-chart');
                             var boxBody = iElement.context.lastChild;
                             var width = boxBody.offsetWidth;
-                            if(width<=0) return;
+                            if (width <= 0) return;
 
                             // create chart function
                             var eventDropsChart = d3.chart.eventDrops()
@@ -334,44 +343,39 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         }
                     }
 
-                    var month = 30 * 24 * 60 * 60 * 1000;
-                    var hours = 60 * 60 * 1000;
-                    var endTime = 0;
-                    var startTime = Date.now();
-
-                    var geoJsonFileSet = ["track20196.geojson","track18308.geojson","track19701.geojson"];
-                    var trackName = ["taxi_20196","taxi_18308","taxi_19701"];
-                    var data = [];
-                    for(var i=0; i<geoJsonFileSet.length;i++)
-                    {
-                        var url = geoJsonFileSet[i];
-                        jQuery.getJSON(url,function(dataJson){
-
-                            var EventFeatures = dataJson;
-
-                            var EventFeatureSet = EventFeatures.features;
+                    ActiveDataFactory.callEventData().then(function (data) {
+                        var dataObj = JSON.parse(data);
+                        for(var k=0; k<dataObj.length;k++)
+                        {
+                            var name     = dataObj[k].data.Name;
+                            var eventArr = dataObj[k].data.Events;
                             var event = {
                                 name: name,
                                 dates: []
                             };
-                            for(var i = 0; i<EventFeatureSet.length; i++)
+                            if (eventArr.length<=0) continue;
+                            for(var i = 0; i<eventArr.length; i++)
                             {
-                                var tableStr = jQuery.parseHTML(EventFeatureSet[i].properties.Description);
-                                var dateStrArry = tableStr[3].innerText.split('   ');
-                                var dateStr = dateStrArry[4].substr(5);
+                                var dateStr = Number(eventArr[i].time +'000');
                                 var date = new Date(dateStr);
                                 var time = date.getTime();
                                 if(time<startTime) startTime = time;
                                 if(time>endTime) endTime = time;
-
                                 event.dates.push(date);
                             }
+                            EventData.push(event);
+                        }
 
-                            data.push(event);
+                        renderTimeGraph(EventData);
 
-                            renderTimeGraph();
-                        });
-                    }
+
+                    },function (data) {
+                        alert(data);
+                    });
+
+
+
+                   
                 }
             }
         }
