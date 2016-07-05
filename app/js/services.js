@@ -41,6 +41,7 @@ stavrServices.factory('MapViewerSever', function () {
         })
     });
     raster.setOpacity(0.5);
+    
 
     var map = new  ol.Map({
             layers: [
@@ -134,19 +135,109 @@ stavrServices.factory('MapViewerSever', function () {
             })
         });
 
+
+    // a normal select interaction to handle click
+    var select = new ol.interaction.Select();
+    map.addInteraction(select);
+
+    var selectedFeatures = select.getFeatures();
+
+    // a DragBox interaction used to select features by drawing boxes
+    var dragBox = new ol.interaction.DragBox({
+        condition: ol.events.condition.platformModifierKeyOnly
+    });
+
+    map.addInteraction(dragBox);
+
+
+
+    dragBox.on('boxend', function() {
+        // features that intersect the box are added to the collection of
+        // selected features, and their names are displayed in the "info"
+        // div
+        var info = [];
+        var extent = dragBox.getGeometry().getExtent();
+        vectorSource.forEachFeatureIntersectingExtent(extent, function(feature) {
+            selectedFeatures.push(feature);
+            info.push(feature.get('name'));
+        });
+    });
+
+    // clear selection when drawing a new box and when clicking on the map
+    dragBox.on('boxstart', function() {
+        selectedFeatures.clear();
+
+    });
+    // map.on('click', function() {
+    //     selectedFeatures.clear();
+    // });
+
+
+
+    // trajectory layers
+    var trajectoryFeatures = new ol.Collection();
+    var trajectoryLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({features: trajectoryFeatures})
+    });
+    trajectoryLayer.setMap(map);
+
+
+
+    // map.addLayer(trajectoryLayer);
+    // var draw;
+    // function addInteraction() {
+    //     draw = new ol.interaction.Draw({
+    //         features: trajectoryFeatures,
+    //         type: /** @type {ol.geom.GeometryType} */ "Point"
+    //     });
+    //     map.addInteraction(draw);
+    // }
+    // addInteraction();
+    
+
+
+
     service.map = map;
+    service.trajectoryFeatures = trajectoryFeatures;
+    service.trajectoryLayer = trajectoryLayer;
+    
 
     service.removeAllLayers = function () {
-           var layers = map.getLayers().getArray();
-           while(layers.length>1){
-               map.removeLayer(layers[1]);
-           }
+        var layers = map.getLayers().getArray();
+        while(layers.length>1){
+            map.removeLayer(layers[1]);
+        }
+    };
+    service.selectLayer = function (name) {
+        selectedFeatures.clear();
+        var layers = map.getLayers().getArray();
+        layers.forEach(function (layer) {
+            var source =  layer.getSource();
+            if(layer.get('name') == name){
+                var feature = source.getFeatures();
+                feature.forEach(function (f) {
+                    selectedFeatures.push(f);
+                })
+
+            }
+
+        });
+    };
+
+    service.selectTrajectoryFeatures = function (name) {
+        selectedFeatures.clear();
+        trajectoryFeatures.getArray().forEach(function (feature) {
+            if(feature.get('name') == name){
+                selectedFeatures.push(feature);
+            }
+        });
     };
 
 
-      return service;
-    }
-);
+    return service
+
+
+});
 
 stavrServices.factory('StopEventlayerSever',function () {
     var number = 0;
@@ -249,7 +340,9 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     var service = {};
 
     service.startDate = "2013-1-1";
-    service.endDate = "2014-12-12";
+    service.endDate = "2013-12-12";
+    service.dataObj = {};
+    service.selectData = [];
 
     var traTableJsonSevletUrl = 'http://localhost:8080/DataVisualor/TraTableJsonSevlet';
 
@@ -265,6 +358,11 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return dateRange;
     }
 
+
+    // set typeFeature
+    service.setTypeFeature = function(typeFeature){
+        service.typeFeature = typeFeature;
+    };
 
     service.getTrajUrlByCarNumber = function (carNumber,typeFeature) {
 
@@ -334,6 +432,19 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return service.selectData;
     };
 
+    service.getSelectDataCarNumberStr = function () {
+        var carNumberStr ="";
+        for(var j=0;j<this.selectData.length;j++){
+            var carNumber = this.selectData[j][0];
+            carNumberStr += carNumber + ";";
+        }
+        return carNumberStr
+    };
+
+
+
+
+
     service.isSelectDataExist = function () {
 
         return service.selectData && service.selectData.length > 0;
@@ -346,7 +457,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         var deferred = $q.defer();
 
         $http.get(traTableJsonSevletUrl,{cache:true}).success(function (data) {
-            var object = angular.fromJson(data);
+            service.dataObj = angular.fromJson(data);
+            var object = service.dataObj;
             var head = object.tableHead;
             var rowData = object.tableData;
             var htmlStr = "<thead ><tr>";
@@ -375,10 +487,23 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return deferred.promise;
     };
 
-    service.callTrajectoryData = function () {
+    service.callTrajectoryData = function (carNumber,typeFeature) {
+
+
+        var tStartTime = service.startDate;
+        var tEndTime = service.endDate;
+        var url = "http://localhost:8080/DataVisualor/ServletJson?"+
+            "TID=&"+
+            "TOwner=&"+
+            "TNumber="+carNumber+"&"+
+            "TStartTime="+tStartTime+"&"+
+            "TEndTime=" + tEndTime+"&"+
+            "Type="+typeFeature;
+
+
         var deferred = $q.defer();
 
-        $http.get(traTableJsonSevletUrl,{cache:true}).success(function (data) {
+        $http.get(url,{cache:true}).success(function (data) {
             deferred.resolve(data);
         }).error(function () {
             deferred.reject('There was an error');
@@ -416,6 +541,30 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
         return deferred.promise;
 
+    };
+
+    service.callSelectedDataTable = function(){
+        if(this.selectData.length==0) return "";
+        var dataObjHead = this.dataObj.tableHead;
+        var tableHTMLStr = "<table class='table'><thead><tr>";
+        for(var i=0 ; i < dataObjHead.length;i++)
+        {
+            tableHTMLStr += "<th>" +
+                dataObjHead[i] +
+                "</th>";
+        }
+        tableHTMLStr += "</tr></thead><tbody>";
+        for(var j=0;j<this.selectData.length;j++){
+
+            var carNumber = this.selectData[j][0];
+            var carOwner  = this.selectData[j][1];
+            var carTime   = this.selectData[j][2];
+            tableHTMLStr += "<tr><td>" + carNumber + "</td><td>";
+            tableHTMLStr += carOwner + "</td><td>";
+            tableHTMLStr += carTime + "</td></tr>";
+        }
+        tableHTMLStr += "</tbody></table>";
+        return tableHTMLStr
     };
 
     return service;

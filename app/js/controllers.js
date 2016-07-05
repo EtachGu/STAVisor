@@ -23,6 +23,9 @@ stavrCtrl.controller('PhoneDetailCtrl', ['$scope', '$routeParams', 'Phone',
 
 
 
+
+
+
 stavrCtrl.controller('ContentCtrl',['$scope','$routeParams',function($scope,$routeParams){
     $scope.$on('updateData',function(evt, data){
 
@@ -53,8 +56,46 @@ stavrCtrl.controller('View1Ctrl',['$scope','$routeParams','ActiveDataFactory',fu
     });
     $(".connectedSortable .box-header, .connectedSortable .nav-tabs-custom").css("cursor", "move");
 
-   
-    
+    $scope.isSelectedDataTable = false;
+    $scope.queryClick = function(){
+        var tID = "";
+        var tOwner = "";
+        var carNumber = document.getElementById("TNumber").value;
+        var tStartTime = document.getElementById("TStartTime").value;
+        var tEndTime = document.getElementById("TEndTime").value;
+        var typeFeature = "MultiPoint";
+
+        var url = "http://localhost:8080/DataVisualor/ServletJson?"+
+            "TID=&"+tID +
+            "TOwner=&"+tOwner+
+            "TNumber="+carNumber+"&"+
+            "TStartTime="+tStartTime+"&"+
+            "TEndTime=" + tEndTime+"&"+
+            "Type="+typeFeature;
+
+   //     $rootScope.$broadcast('updateTrajectory',url);
+
+
+
+        //UpdateTrajectoryDataSever.url = url;
+
+        //UpdateTrajectoryDataSever.resouce.get({ TID:tID,TOwner:tOwner,TNumber:carNumber,TStartTime:tStartTime,TEndTime:tEndTime},function(data){},{});
+
+    };
+
+
+    $scope.ClearResult = function () {
+        $rootScope.$broadcast('removeTrajectory');
+    }
+
+
+    // response the click on tableView
+    // response the click on tableView
+    $scope.tableViewClick = function () {
+        if($scope.selectTableView){
+
+        }
+    }
     
 
 
@@ -100,6 +141,15 @@ stavrCtrl.controller('mainSideBarCtrl',['$scope','$uibModal','$log',function($sc
         //     $log.info('Modal dismissed at: ' + new Date());
         // });
     };
+
+
+    $scope.view2Click = function () {
+        //Handle sidebar to collapse
+        if (!( $("body").hasClass('sidebar-collapse') || $("body").hasClass('sidebar-open') ) ) {
+            var naviBtn = document.getElementById("btnSideBar");
+            naviBtn.click();
+        }
+    }
 
 }]);
 
@@ -775,6 +825,7 @@ stavrCtrl.controller('InfoTableCtrl',['$scope','$rootScope','ActiveDataFactory',
     $scope.tableData = "";
     $scope.showUrl = "";
     $scope.isNewTable = false;
+    $scope.isSelectedDataTable = false;
     $scope.selectedStartDate = "2013-01-01";
     $scope.selectedEndDate = "2016-01-01";
 
@@ -789,19 +840,30 @@ stavrCtrl.controller('InfoTableCtrl',['$scope','$rootScope','ActiveDataFactory',
     
    $scope.refresh = function () {
        $scope.isNewTable = !$scope.isNewTable;
-   }
+   };
+
+    $scope.selectAll = function () {
+        if($scope.table){
+            $scope.selectedrows = $scope.table.data().length;
+            var selectedData = $scope.table.data();
+            ActiveDataFactory.setSelectData(selectedData);
+            ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+            $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        }
+    };
 
     $scope.tableClick =function () {
         if($scope.table){
-            $scope.selectedrows = $scope.table.rows('.selected').data().length;
+            $scope.selectedrows = $scope.table.rows('.active').data().length;
+            var selectedData = $scope.table.rows('.active').data();
+            ActiveDataFactory.setSelectData(selectedData);
+            ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+            $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
         }
-    }
+    };
 
     $scope.showSelect = function () {
         if($scope.table){
-            var selectedData = $scope.table.rows('.selected').data();
-            ActiveDataFactory.setSelectData(selectedData);
-            ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
             $scope.showUrl = '#/overview/view1';
         }
     };
@@ -882,7 +944,7 @@ stavrCtrl.controller('ParameterCtrl',['$scope','$rootScope','$uibModal',function
             size: 'lg',
             resolve: {}
         });
-    }
+    };
 
     /*
      *
@@ -895,7 +957,7 @@ stavrCtrl.controller('ParameterCtrl',['$scope','$rootScope','$uibModal',function
             size: 'lg',
             resolve: {}
         });
-    }
+    };
 
 
 }]);
@@ -961,7 +1023,50 @@ stavrCtrl.controller('TrajectoryLayerMICtrl',['$scope','$uibModalInstance','$roo
     };
 }]);
 
+stavrCtrl.controller('CarDataTableMICtrl',['$scope','$uibModalInstance','$rootScope','ActiveDataFactory',function ($scope, $uibModalInstance,$rootScope,ActiveDataFactory) {
 
+    $scope.selectedrows = 0;
+    $scope.tableData = "";
+    $scope.isNewTable = false;
+    $scope.isSelectedDataTable = false;
+
+    ActiveDataFactory.callDatabase().then(function (data) {
+        $scope.tableData = data;
+        $scope.isNewTable = true;
+    },function (data) {
+        alert(data);
+    });
+
+
+    $scope.selectAll = function () {
+        if($scope.table){
+            $scope.selectedrows = $scope.table.data().length;
+            var selectedData = $scope.table.data();
+            ActiveDataFactory.setSelectData(selectedData);
+            $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        }
+    };
+
+    $scope.tableClick =function () {
+        if($scope.table){
+            $scope.selectedrows = $scope.table.rows('.active').data().length;
+            var selectedData = $scope.table.rows('.active').data();
+            ActiveDataFactory.setSelectData(selectedData);
+            $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        }
+    };
+
+    $scope.ok = function () {
+        $uibModalInstance.close();
+
+        //  update the selected data eg.  car  number
+        $rootScope.$broadcast('updateSelectData');
+    };
+
+    $scope.cancel = function () {
+        $uibModalInstance.dismiss('cancel');
+    };
+}]);
 
 /*
  *  CrossFilter
@@ -1327,331 +1432,359 @@ stavrCtrl.controller('CrossFilterCtrl',['$scope','ActiveDataFactory',function ($
 */
 
 
+
     var renderChart = function (eventSet) {
 
-        // Various formatters.
-        var formatNumber = d3.format(",d"),
-            formatChange = d3.format("+,d"),
-            formatDate = d3.time.format("%B %d, %Y"),
-            formatTime = d3.time.format("%I:%M %p");
+            // Various formatters.
+            var formatNumber = d3.format(",d"),
+                formatChange = d3.format("+,d"),
+                formatDate = d3.time.format("%B %d, %Y"),
+                formatTime = d3.time.format("%I:%M %p");
 
-        // A nest operator, for grouping the flight list.
-        var nestByDate = d3.nest()
-            .key(function(d) { return d3.time.day(d.time); });
-
-        // A little coercion, since the CSV is untyped.
-        var endTime = 0;
-        var startTime = Date.now();
-
-        eventSet.forEach(function(d, i) {
-            d.index = i;
-            var time = +(d.time+'000');
-            if(time<startTime) startTime = time;
-            if(time>endTime) endTime = time;
-            d.time = new Date(time);
-
-        });
-
-        // Create the crossfilter for the relevant dimensions and groups.
-        var eventFilter = crossfilter(eventSet),
-            all = eventFilter.groupAll(),
-            date = eventFilter.dimension(function(d) { return d.time; }),
-            dates = date.group(d3.time.day),
-            hour = eventFilter.dimension(function(d) { return d.time.getHours() + d.time.getMinutes() / 60; }),
-            hours = hour.group(Math.floor);
-
-        var charts = [
-
-            barChart()
-                .dimension(hour)
-                .group(hours)
-                .x(d3.scale.linear()
-                    .domain([0, 24])
-                    .rangeRound([0, 10 * 24])),
-
-            barChart()
-                .dimension(date)
-                .group(dates)
-                .round(d3.time.day.round)
-                .x(d3.time.scale()
-                    .domain([new Date(startTime), new Date(endTime)])
-                    .rangeRound([0, 10 * 90]))
-                .filter([new Date(startTime), new Date(startTime+(endTime-startTime)/4)])
-
-        ];
-
-        // Given our array of charts, which we assume are in the same order as the
-        // .chart elements in the DOM, bind the charts to the DOM and render them.
-        // We also listen to the chart's brush events to update the display.
-        var chart = d3.selectAll(".chart")
-            .data(charts)
-            .each(function(chart) { chart.on("brush", renderAll).on("brushend", renderAll); });
-
-        // Render the initial lists.
-        var list = d3.selectAll(".list")
-            .data([flightList]);
-
-        // Render the total.
-        d3.selectAll("#total")
-            .text(formatNumber(eventFilter.size()));
-
-        renderAll();
-
-        // Renders the specified chart or list.
-        function render(method) {
-            d3.select(this).call(method);
-        }
-
-        // Whenever the brush moves, re-rendering everything.
-        function renderAll() {
-            chart.each(render);
-            list.each(render);
-            d3.select("#active").text(formatNumber(all.value()));
-        }
-
-        // Like d3.time.format, but faster.
-        function parseDate(d) {
-            return new Date(2001,
-                d.substring(0, 2) - 1,
-                d.substring(2, 4),
-                d.substring(4, 6),
-                d.substring(6, 8));
-        }
-
-        window.filter = function(filters) {
-            filters.forEach(function(d, i) { charts[i].filter(d); });
-            renderAll();
-        };
-
-        window.reset = function(i) {
-            charts[i].filter(null);
-            renderAll();
-        };
-
-        function flightList(div) {
-            var flightsByDate = nestByDate.entries(date.top(40));
-
-            div.each(function() {
-                var date = d3.select(this).selectAll(".date")
-                    .data(flightsByDate, function(d) { return d.key; });
-
-                date.enter().append("div")
-                    .attr("class", "date")
-                    .append("div")
-                    .attr("class", "day")
-                    .text(function(d) { return formatDate(d.values[0].time); });
-
-                date.exit().remove();
-
-                var flight = date.order().selectAll(".flight")
-                    .data(function(d) { return d.values; }, function(d) { return d.index; });
-
-                var flightEnter = flight.enter().append("div")
-                    .attr("class", "flight");
-
-                flightEnter.append("div")
-                    .attr("class", "time")
-                    .text(function(d) { return formatTime(d.time); });
-
-                flight.exit().remove();
-
-                flight.order();
-            });
-        }
-
-        function barChart() {
-            if (!barChart.id) barChart.id = 0;
-
-            var margin = {top: 10, right: 10, bottom: 20, left: 10},
-                x,
-                y = d3.scale.linear().range([100, 0]),
-                id = barChart.id++,
-                axis = d3.svg.axis().orient("bottom"),
-                brush = d3.svg.brush(),
-                brushDirty,
-                dimension,
-                group,
-                round;
-
-            function chart(div) {
-                var width = x.range()[1],
-                    height = y.range()[0];
-
-                y.domain([0, group.top(1)[0].value]);
-
-                div.each(function() {
-                    var div = d3.select(this),
-                        g = div.select("g");
-
-                    // Create the skeletal chart.
-                    if (g.empty()) {
-                        div.select(".title").append("a")
-                            .attr("href", "javascript:reset(" + id + ")")
-                            .attr("class", "reset")
-                            .text("reset")
-                            .style("display", "none");
-
-                        g = div.append("svg")
-                            .attr("width", width + margin.left + margin.right)
-                            .attr("height", height + margin.top + margin.bottom)
-                            .append("g")
-                            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                        g.append("clipPath")
-                            .attr("id", "clip-" + id)
-                            .append("rect")
-                            .attr("width", width)
-                            .attr("height", height);
-
-                        g.selectAll(".bar")
-                            .data(["background", "foreground"])
-                            .enter().append("path")
-                            .attr("class", function(d) { return d + " bar"; })
-                            .datum(group.all());
-
-                        g.selectAll(".foreground.bar")
-                            .attr("clip-path", "url(#clip-" + id + ")");
-
-                        g.append("g")
-                            .attr("class", "axis")
-                            .attr("transform", "translate(0," + height + ")")
-                            .call(axis);
-
-                        // Initialize the brush component with pretty resize handles.
-                        var gBrush = g.append("g").attr("class", "brush").call(brush);
-                        gBrush.selectAll("rect").attr("height", height);
-                        gBrush.selectAll(".resize").append("path").attr("d", resizePath);
-                    }
-
-                    // Only redraw the brush if set externally.
-                    if (brushDirty) {
-                        brushDirty = false;
-                        g.selectAll(".brush").call(brush);
-                        div.select(".title a").style("display", brush.empty() ? "none" : null);
-                        if (brush.empty()) {
-                            g.selectAll("#clip-" + id + " rect")
-                                .attr("x", 0)
-                                .attr("width", width);
-                        } else {
-                            var extent = brush.extent();
-                            g.selectAll("#clip-" + id + " rect")
-                                .attr("x", x(extent[0]))
-                                .attr("width", x(extent[1]) - x(extent[0]));
-                        }
-                    }
-
-                    g.selectAll(".bar").attr("d", barPath);
+            // A nest operator, for grouping the flight list.
+            var nestByDate = d3.nest()
+                .key(function (d) {
+                    return d3.time.day(d.time);
                 });
 
-                function barPath(groups) {
-                    var path = [],
-                        i = -1,
-                        n = groups.length,
-                        d;
-                    while (++i < n) {
-                        d = groups[i];
-                        path.push("M", x(d.key), ",", height, "V", y(d.value), "h9V", height);
-                    }
-                    return path.join("");
-                }
+            // A little coercion, since the CSV is untyped.
+            var endTime = 0;
+            var startTime = Date.now();
 
-                function resizePath(d) {
-                    var e = +(d == "e"),
-                        x = e ? 1 : -1,
-                        y = height / 3;
-                    return "M" + (.5 * x) + "," + y
-                        + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
-                        + "V" + (2 * y - 6)
-                        + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
-                        + "Z"
-                        + "M" + (2.5 * x) + "," + (y + 8)
-                        + "V" + (2 * y - 8)
-                        + "M" + (4.5 * x) + "," + (y + 8)
-                        + "V" + (2 * y - 8);
-                }
+            eventSet.forEach(function (d, i) {
+                d.index = i;
+                var time = +(d.time + '000');
+                if (time < startTime) startTime = time;
+                if (time > endTime) endTime = time;
+                d.time = new Date(time);
+
+            });
+
+            // Create the crossfilter for the relevant dimensions and groups.
+            var eventFilter = crossfilter(eventSet),
+                all = eventFilter.groupAll(),
+                date = eventFilter.dimension(function (d) {
+                    return d.time;
+                }),
+                dates = date.group(d3.time.day),
+                hour = eventFilter.dimension(function (d) {
+                    return d.time.getHours() + d.time.getMinutes() / 60;
+                }),
+                hours = hour.group(Math.floor);
+
+            var charts = [
+
+                barChart()
+                    .dimension(hour)
+                    .group(hours)
+                    .x(d3.scale.linear()
+                        .domain([0, 24])
+                        .rangeRound([0, 10 * 24])),
+
+                barChart()
+                    .dimension(date)
+                    .group(dates)
+                    .round(d3.time.day.round)
+                    .x(d3.time.scale()
+                        .domain([new Date(startTime), new Date(endTime)])
+                        .rangeRound([0, 10 * 90]))
+                    .filter([new Date(startTime), new Date(startTime + (endTime - startTime) / 4)])
+
+            ];
+
+            // Given our array of charts, which we assume are in the same order as the
+            // .chart elements in the DOM, bind the charts to the DOM and render them.
+            // We also listen to the chart's brush events to update the display.
+            var chart = d3.selectAll(".chart")
+                .data(charts)
+                .each(function (chart) {
+                    chart.on("brush", renderAll).on("brushend", renderAll);
+                });
+
+            // Render the initial lists.
+            var list = d3.selectAll(".list")
+                .data([flightList]);
+
+            // Render the total.
+            d3.selectAll("#total")
+                .text(formatNumber(eventFilter.size()));
+
+            renderAll();
+
+            // Renders the specified chart or list.
+            function render(method) {
+                d3.select(this).call(method);
             }
 
-            brush.on("brushstart.chart", function() {
-                var div = d3.select(this.parentNode.parentNode.parentNode);
-                div.select(".title a").style("display", null);
-            });
+            // Whenever the brush moves, re-rendering everything.
+            function renderAll() {
+                chart.each(render);
+                list.each(render);
+                d3.select("#active").text(formatNumber(all.value()));
+            }
 
-            brush.on("brush.chart", function() {
-                var g = d3.select(this.parentNode),
-                    extent = brush.extent();
-                if (round) g.select(".brush")
-                    .call(brush.extent(extent = extent.map(round)))
-                    .selectAll(".resize")
-                    .style("display", null);
-                g.select("#clip-" + id + " rect")
-                    .attr("x", x(extent[0]))
-                    .attr("width", x(extent[1]) - x(extent[0]));
-                dimension.filterRange(extent);
-            });
+            // Like d3.time.format, but faster.
+            function parseDate(d) {
+                return new Date(2001,
+                    d.substring(0, 2) - 1,
+                    d.substring(2, 4),
+                    d.substring(4, 6),
+                    d.substring(6, 8));
+            }
 
-            brush.on("brushend.chart", function() {
-                if (brush.empty()) {
+            window.filter = function (filters) {
+                filters.forEach(function (d, i) {
+                    charts[i].filter(d);
+                });
+                renderAll();
+            };
+
+            window.reset = function (i) {
+                charts[i].filter(null);
+                renderAll();
+            };
+
+            function flightList(div) {
+                var flightsByDate = nestByDate.entries(date.top(40));
+
+                div.each(function () {
+                    var date = d3.select(this).selectAll(".date")
+                        .data(flightsByDate, function (d) {
+                            return d.key;
+                        });
+
+                    date.enter().append("div")
+                        .attr("class", "date")
+                        .append("div")
+                        .attr("class", "day")
+                        .text(function (d) {
+                            return formatDate(d.values[0].time);
+                        });
+
+                    date.exit().remove();
+
+                    var flight = date.order().selectAll(".flight")
+                        .data(function (d) {
+                            return d.values;
+                        }, function (d) {
+                            return d.index;
+                        });
+
+                    var flightEnter = flight.enter().append("div")
+                        .attr("class", "flight");
+
+                    flightEnter.append("div")
+                        .attr("class", "time")
+                        .text(function (d) {
+                            return formatTime(d.time);
+                        });
+
+                    flight.exit().remove();
+
+                    flight.order();
+                });
+            }
+
+            function barChart() {
+                if (!barChart.id) barChart.id = 0;
+
+                var margin = {top: 10, right: 10, bottom: 20, left: 10},
+                    x,
+                    y = d3.scale.linear().range([100, 0]),
+                    id = barChart.id++,
+                    axis = d3.svg.axis().orient("bottom"),
+                    brush = d3.svg.brush(),
+                    brushDirty,
+                    dimension,
+                    group,
+                    round;
+
+                function chart(div) {
+                    var width = x.range()[1],
+                        height = y.range()[0];
+
+                    y.domain([0, group.top(1)[0].value]);
+
+                    div.each(function () {
+                        var div = d3.select(this),
+                            g = div.select("g");
+
+                        // Create the skeletal chart.
+                        if (g.empty()) {
+                            div.select(".title").append("a")
+                                .attr("href", "javascript:reset(" + id + ")")
+                                .attr("class", "reset")
+                                .text("reset")
+                                .style("display", "none");
+
+                            g = div.append("svg")
+                                .attr("width", width + margin.left + margin.right)
+                                .attr("height", height + margin.top + margin.bottom)
+                                .append("g")
+                                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                            g.append("clipPath")
+                                .attr("id", "clip-" + id)
+                                .append("rect")
+                                .attr("width", width)
+                                .attr("height", height);
+
+                            g.selectAll(".bar")
+                                .data(["background", "foreground"])
+                                .enter().append("path")
+                                .attr("class", function (d) {
+                                    return d + " bar";
+                                })
+                                .datum(group.all());
+
+                            g.selectAll(".foreground.bar")
+                                .attr("clip-path", "url(#clip-" + id + ")");
+
+                            g.append("g")
+                                .attr("class", "axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(axis);
+
+                            // Initialize the brush component with pretty resize handles.
+                            var gBrush = g.append("g").attr("class", "brush").call(brush);
+                            gBrush.selectAll("rect").attr("height", height);
+                            gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+                        }
+
+                        // Only redraw the brush if set externally.
+                        if (brushDirty) {
+                            brushDirty = false;
+                            g.selectAll(".brush").call(brush);
+                            div.select(".title a").style("display", brush.empty() ? "none" : null);
+                            if (brush.empty()) {
+                                g.selectAll("#clip-" + id + " rect")
+                                    .attr("x", 0)
+                                    .attr("width", width);
+                            } else {
+                                var extent = brush.extent();
+                                g.selectAll("#clip-" + id + " rect")
+                                    .attr("x", x(extent[0]))
+                                    .attr("width", x(extent[1]) - x(extent[0]));
+                            }
+                        }
+
+                        g.selectAll(".bar").attr("d", barPath);
+                    });
+
+                    function barPath(groups) {
+                        var path = [],
+                            i = -1,
+                            n = groups.length,
+                            d;
+                        while (++i < n) {
+                            d = groups[i];
+                            path.push("M", x(d.key), ",", height, "V", y(d.value), "h9V", height);
+                        }
+                        return path.join("");
+                    }
+
+                    function resizePath(d) {
+                        var e = +(d == "e"),
+                            x = e ? 1 : -1,
+                            y = height / 3;
+                        return "M" + (.5 * x) + "," + y
+                            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
+                            + "V" + (2 * y - 6)
+                            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
+                            + "Z"
+                            + "M" + (2.5 * x) + "," + (y + 8)
+                            + "V" + (2 * y - 8)
+                            + "M" + (4.5 * x) + "," + (y + 8)
+                            + "V" + (2 * y - 8);
+                    }
+                }
+
+                brush.on("brushstart.chart", function () {
                     var div = d3.select(this.parentNode.parentNode.parentNode);
-                    div.select(".title a").style("display", "none");
-                    div.select("#clip-" + id + " rect").attr("x", null).attr("width", "100%");
-                    dimension.filterAll();
-                }
-            });
+                    div.select(".title a").style("display", null);
+                });
 
-            chart.margin = function(_) {
-                if (!arguments.length) return margin;
-                margin = _;
-                return chart;
-            };
+                brush.on("brush.chart", function () {
+                    var g = d3.select(this.parentNode),
+                        extent = brush.extent();
+                    if (round) g.select(".brush")
+                        .call(brush.extent(extent = extent.map(round)))
+                        .selectAll(".resize")
+                        .style("display", null);
+                    g.select("#clip-" + id + " rect")
+                        .attr("x", x(extent[0]))
+                        .attr("width", x(extent[1]) - x(extent[0]));
+                    dimension.filterRange(extent);
+                });
 
-            chart.x = function(_) {
-                if (!arguments.length) return x;
-                x = _;
-                axis.scale(x);
-                brush.x(x);
-                return chart;
-            };
+                brush.on("brushend.chart", function () {
+                    if (brush.empty()) {
+                        var div = d3.select(this.parentNode.parentNode.parentNode);
+                        div.select(".title a").style("display", "none");
+                        div.select("#clip-" + id + " rect").attr("x", null).attr("width", "100%");
+                        dimension.filterAll();
+                    }
+                });
 
-            chart.y = function(_) {
-                if (!arguments.length) return y;
-                y = _;
-                return chart;
-            };
+                chart.margin = function (_) {
+                    if (!arguments.length) return margin;
+                    margin = _;
+                    return chart;
+                };
 
-            chart.dimension = function(_) {
-                if (!arguments.length) return dimension;
-                dimension = _;
-                return chart;
-            };
+                chart.x = function (_) {
+                    if (!arguments.length) return x;
+                    x = _;
+                    axis.scale(x);
+                    brush.x(x);
+                    return chart;
+                };
 
-            chart.filter = function(_) {
-                if (_) {
-                    brush.extent(_);
-                    dimension.filterRange(_);
-                } else {
-                    brush.clear();
-                    dimension.filterAll();
-                }
-                brushDirty = true;
-                return chart;
-            };
+                chart.y = function (_) {
+                    if (!arguments.length) return y;
+                    y = _;
+                    return chart;
+                };
 
-            chart.group = function(_) {
-                if (!arguments.length) return group;
-                group = _;
-                return chart;
-            };
+                chart.dimension = function (_) {
+                    if (!arguments.length) return dimension;
+                    dimension = _;
+                    return chart;
+                };
 
-            chart.round = function(_) {
-                if (!arguments.length) return round;
-                round = _;
-                return chart;
-            };
+                chart.filter = function (_) {
+                    if (_) {
+                        brush.extent(_);
+                        dimension.filterRange(_);
+                    } else {
+                        brush.clear();
+                        dimension.filterAll();
+                    }
+                    brushDirty = true;
+                    return chart;
+                };
 
-            return d3.rebind(chart, brush, "on");
-        }
+                chart.group = function (_) {
+                    if (!arguments.length) return group;
+                    group = _;
+                    return chart;
+                };
 
-    };
+                chart.round = function (_) {
+                    if (!arguments.length) return round;
+                    round = _;
+                    return chart;
+                };
+
+                return d3.rebind(chart, brush, "on");
+            }
+
+        };
+
+    // d3.json("mbar/events.json", function(error, flights) {
+    //     var events = flights.Events;
+    //     renderChart(events);
+    // });
 
     ActiveDataFactory.callEventData().then(function (data) {
         var dataObj = JSON.parse(data);
@@ -1664,6 +1797,225 @@ stavrCtrl.controller('CrossFilterCtrl',['$scope','ActiveDataFactory',function ($
         alert(data);
     });
 
+
+
+
+}]);
+
+
+/*
+ *  parallel-coordinate graph
+ */
+stavrCtrl.controller('ClusterAnalyticsCtrl',['$scope',function ($scope) {
+
+
+    var parcoords = d3.parcoords()("#example")
+        .alpha(0.4)
+        .mode("queue") // progressive rendering
+        //.height(d3.max([document.body.clientHeight-420, 220]))
+        .height(d3.max([380, 220]))
+        .margin({
+            top: 36,
+            left: 0,
+            right: 0,
+            bottom: 16
+        });
+
+    // load csv file and create the chart
+    d3.csv('mbar/nutrients.csv', function(data) {
+        // slickgrid needs each data element to have an id
+        data.forEach(function(d,i) { d.id = d.id || i; });
+
+        parcoords
+            .data(data)
+            .hideAxis(["name"])
+            .render()
+            .reorderable()
+            .brushMode("1D-axes");
+
+        // setting up grid
+        var column_keys = d3.keys(data[0]);
+        var columns = column_keys.map(function(key,i) {
+            return {
+                id: key,
+                name: key,
+                field: key,
+                sortable: true
+            }
+        });
+
+        var options = {
+            enableCellNavigation: true,
+            enableColumnReorder: false,
+            multiColumnSort: false
+        };
+
+        var dataView = new Slick.Data.DataView();
+        var grid = new Slick.Grid("#grid", dataView, columns, options);
+        var pager = new Slick.Controls.Pager(dataView, grid, $("#pager"));
+
+        // wire up model events to drive the grid
+        dataView.onRowCountChanged.subscribe(function (e, args) {
+            grid.updateRowCount();
+            grid.render();
+        });
+
+        dataView.onRowsChanged.subscribe(function (e, args) {
+            grid.invalidateRows(args.rows);
+            grid.render();
+        });
+
+        // column sorting
+        var sortcol = column_keys[0];
+        var sortdir = 1;
+
+        function comparer(a, b) {
+            var x = a[sortcol], y = b[sortcol];
+            return (x == y ? 0 : (x > y ? 1 : -1));
+        }
+
+        // click header to sort grid column
+        grid.onSort.subscribe(function (e, args) {
+            sortdir = args.sortAsc ? 1 : -1;
+            sortcol = args.sortCol.field;
+
+            if ($.browser && $.browser.msie && $.browser.version <= 8) {
+                dataView.fastSort(sortcol, args.sortAsc);
+            } else {
+                dataView.sort(comparer, args.sortAsc);
+            }
+        });
+
+        // highlight row in chart
+        grid.onMouseEnter.subscribe(function(e,args) {
+            var i = grid.getCellFromEvent(e).row;
+            var d = parcoords.brushed() || data;
+            parcoords.highlight([d[i]]);
+        });
+        grid.onMouseLeave.subscribe(function(e,args) {
+            parcoords.unhighlight();
+        });
+
+        // fill grid with data
+        gridUpdate(data);
+
+        // update grid on brush
+        parcoords.on("brush", function(d) {
+            gridUpdate(d);
+        });
+
+        function gridUpdate(data) {
+            dataView.beginUpdate();
+            dataView.setItems(data);
+            dataView.endUpdate();
+        };
+
+    });
+}]);
+
+
+/*
+ *  EventsRelationVACtrl
+ */
+stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','ActiveDataFactory','MapViewerSever',function($scope,$rootScope,$uibModal,ActiveDataFactory,MapViewerSever) {
+
+    $(".connectedSortable").sortable({
+        placeholder: "sort-highlight",
+        connectWith: ".connectedSortable",
+        handle: ".box-header, .nav-tabs",
+        forcePlaceholderSize: true,
+        zIndex: 999999
+    });
+    $(".connectedSortable .box-header, .connectedSortable .nav-tabs-custom").css("cursor", "move");
+
+    // control the update of views
+
+    $scope.isSelectedDataTable = false;
+    $scope.isUpdateMapView = false;
+    $scope.isUpdateRelationView = false;
+    $scope.isUpdateTimeView = false;
+    $scope.isUpdateStackView = false;
+
+    // response the click on tableView
+    // response the click on tableView
+    $scope.tableViewClick = function () {
+        if($scope.selectTableView){
+            var selectedData = $scope.selectTableView.rows('.active').data();
+            if(selectedData.length>0)MapViewerSever.selectLayer(selectedData[0][0]);
+            else MapViewerSever.selectLayer("");
+        }
+    };
+
+    $scope.selectedStartDate = "2013-01-01";
+    $scope.selectedEndDate = "2013-09-30";
+
+    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment("2013-01-01"),
+        endDate: moment('2013-09-30')}, function (start, end) {
+        // window.alert("You chose: " + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+
+        $scope.selectedStartDate = start.format('YYYY-MM-DD');
+        $scope.selectedEndDate = end.format('YYYY-MM-DD');
+    });
+
+    /*
+     *
+     */
+    $scope.mapLayerEdit = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/mapLayerEdit/mapLayerEdit.html',
+            controller: 'MapLayerMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+    /*
+     *
+     */
+    $scope.trajLayerEdit = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/mapLayerEdit/trajectoryLayerEdit.html',
+            controller: 'TrajectoryLayerMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+
+    $scope.showDataTable = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/dataTable/carDataTable.html',
+            controller: 'CarDataTableMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+
+    $scope.$on('updateSelectData',function () {
+        $scope.selectedCars = ActiveDataFactory.getSelectDataCarNumberStr();
+    });
+
+
+    $scope.queryClick = function(){
+
+        ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+
+        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        $scope.isUpdateStackView = !$scope.isUpdateStackView;
+
+    };
+
+
+    $scope.ClearResult = function () {
+        $rootScope.$broadcast('removeTrajectory');
+    };
 
 
 

@@ -4,6 +4,7 @@
 
 var stavrApp = angular.module('stavrApp', [
   'ngRoute',
+  'angularCSS',
   'ui.bootstrap',
   'phonecatAnimations',
   'stavrControllers',
@@ -22,7 +23,8 @@ stavrApp.config(['$routeProvider',
       }).
       when('/overview/view1', {
         templateUrl:'../MainView1.html',
-        controller:'View1Ctrl'
+        controller:'View1Ctrl',
+        css:'lib/ALTE/datatables/dataTables.bootstrap.css'
       }).
       when('/overview/view2', {
          templateUrl:'../MainView2.html',
@@ -38,7 +40,18 @@ stavrApp.config(['$routeProvider',
       }).
       when('/CrossFilter',{
           templateUrl: '../CrossFilter.html',
-          controller:'CrossFilterCtrl'
+          controller:'CrossFilterCtrl',
+          css:'css/crossFilter.css'
+      }).
+      when('/ClusterAnalysis',{
+        templateUrl: '../LinkingtoSlickGrid.html',
+        controller: 'ClusterAnalyticsCtrl'
+
+
+      }).
+      when('/EventsRelationVA',{
+         templateUrl:'../EventsRelation.html',
+         controller: 'EventsRelationVACtrl'
       }).
       when('/help', {
         templateUrl: '../help.html',
@@ -48,3 +61,11 @@ stavrApp.config(['$routeProvider',
         redirectTo: '/overview'
        });
   }]);
+
+
+// stavrApp.run(function($rootScope, $location, $anchorScroll) {
+//   //when the route is changed scroll to the proper element.
+//   $rootScope.$on('$routeChangeSuccess', function(newRoute, oldRoute) {
+//     if($location.hash()) $anchorScroll();
+//   });
+// });

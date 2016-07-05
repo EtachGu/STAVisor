@@ -66,96 +66,7 @@ stavrDirts.directive('myInfoTableDirective',function(){
    }; 
 });
 
-stavrDirts.directive('myDataBaseTable',['$http',function($http){
-    return {
-        restrict : 'A',
-        transclude: false,
-        templateUrl:'template/dataBase.html',
-        controller:
-            function ($scope,$element,$transclude,$http) {
-                $scope.selectedrows = 0;
-
-
-            },
-        link: {
-            pre: function (tElement,tAttrs,transclude) {
-
-            },
-            post:function (scope,iElement,iAttrs,controller) {
-
-                $http.get('http://localhost:8080/DataVisualor/TraTableJsonSevlet',{cache:true}).
-                success(function(data, status, headers, config) {
-                    // this callback will be called asynchronously
-                    // when the response is available
-                    try {
-                        var object = angular.fromJson(data);
-                        var head = object.tableHead;
-                        var rowData = object.tableData;
-                        var htmlStr = "<thead ><tr>";
-                        for(var i=0 ; i < head.length;i++)
-                        {
-                            htmlStr += "<th>" +
-                                head[i] +
-                                "</th>";
-                        }
-                        htmlStr +="</tr></thead>";
-                        htmlStr +="<tbody>";
-                        for(var i=0 ; i < rowData.length;i++)
-                        {
-                            var rowObject = angular.fromJson(rowData[i]);
-                            htmlStr += "<tr>"+
-                                "<td>"+rowObject.Num+"</td>"+
-                                "<td>"+rowObject.Own+"</td>"+
-                                "<td>"+rowObject.Time+"</td>" +
-                                "</tr>";
-                        }
-                        htmlStr +="</tbody>";
-
-                        var tableElement = iElement[0].children[0].children[1].children[0];
-                        tableElement.innerHTML = htmlStr;
-
-                        var table = $(tableElement).DataTable({
-                            "paging": true,
-                            "lengthChange": true,
-                            "searching": true,
-                            "ordering": true,
-                            "info": true,
-                            "autoWidth": true,
-                            "select": true
-                        });
-
-                        $('#example1 tbody').on( 'click', 'tr', function () {
-                            $(this).toggleClass('selected');
-                            scope.selectedrows = table.rows('.selected').data().length;
-                        } );
-
-                        scope.showSelect = function () {
-                            var selectedData = table.rows('.selected').data();
-                            $rootScope.$broadcast('dataUpdate',selectedData);
-                            scope.showUrl = "#/overview";
-
-                        };
-
-
-                    }catch(e)
-                    {
-
-                    }
-
-                }).
-                error(function(data, status, headers, config) {
-                    // called asynchronously if an error occurs
-                    // or server returns response with an error status.
-                });
-
-
-
-            }
-        }
-    };
-}]);
-
-stavrDirts.directive('myTempDataBaseTable',['$rootScope',function($rootScope){
+stavrDirts.directive('myDataBaseTable',['$rootScope',function($rootScope){
     return function (scope,ele,attrs){
             attrs.$observe('title',function () {
                 if(scope.tableData.length ==0) return;
@@ -173,7 +84,7 @@ stavrDirts.directive('myTempDataBaseTable',['$rootScope',function($rootScope){
                 });
 
                 $('#example1 tbody').on( 'click', 'tr', function () {
-                    $(this).toggleClass('selected');
+                    $(this).toggleClass('active');
                 } );               
 
                 
@@ -222,57 +133,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
         restrict : 'A',
         transclude: true,
         controller: function ($scope,$element,$transclude,$http) {
-
-            if(ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
-
-                var map = MapViewerSever.map;
-                MapViewerSever.removeAllLayers();
-
-                var selectData = ActiveDataFactory.getSelectData();
-                var typeFeature = "LineString";
-                var d3Color = d3.scale.category10();
-
-                for(var i=0;i<selectData.length;i++){
-                    var carNumber = selectData[i][0];
-                    var url = ActiveDataFactory.getTrajUrlByCarNumber(carNumber,typeFeature);
-                    var colorLine = d3Color(i);
-                    var trajectoryLayer = new ol.layer.Vector({
-                        style:new ol.style.Style({
-                            stroke: new ol.style.Stroke({
-                                color: colorLine,
-                                width: 2
-                            })
-                        })
-                    });
-                    trajectoryLayer.setSource( new ol.source.Vector({
-                        url: url,
-                        format: new ol.format.GeoJSON()
-                    }));
-
-                    trajectoryLayer.set('name',carNumber);
-                    trajectoryLayer.set('color',colorLine);
-                    trajectoryLayer.set('type',typeFeature);
-                    trajectoryLayer.set('date',"2013-3-28");
-
-
-
-
-                    // trajectoryLayer.setStyle =  new ol.style.Style({
-                    //     stroke: new ol.style.Stroke({
-                    //                         color: '#ffcc00',
-                    //                         width: 2
-                    //                     }),
-                    //     fill: new ol.style.Fill({
-                    //         color: '#ffcc00'
-                    //     })
-                    // });
-
-                    map.addLayer(trajectoryLayer);
-                }
-
-                ActiveDataFactory.isMapUpdate =false;
-
-            }
+           
                 
         },
         link:{
@@ -282,6 +143,92 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
             post:function (scope,iElement,iAttrs,controller) {
                 var map = MapViewerSever.map;
                 map.setTarget(iElement[0]);
+
+                iAttrs.$observe('title',function () {
+                    if(ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
+
+                        var map = MapViewerSever.map;
+                        MapViewerSever.removeAllLayers();
+
+                        var trajectoryFeatures = MapViewerSever.trajectoryFeatures;
+
+                        var selectData = ActiveDataFactory.getSelectData();
+                        var typeFeature = "LineString";
+                        var d3Color = d3.scale.category10();
+                        var featureSet = [];
+
+                        for(var i=0;i<selectData.length;i++){
+
+                            var carNumber = selectData[i][0];
+                            //var url = ActiveDataFactory.getTrajUrlByCarNumber(carNumber,typeFeature);
+                            var colorLine = d3Color(i);
+
+
+                            var feature = new ol.Feature({
+                                style:   new ol.style.Style({
+                                    stroke: new ol.style.Stroke({
+                                        color: '#ffcc00',
+                                        width: 2
+                                    }),
+                                    fill: new ol.style.Fill({
+                                        color: colorLine
+                                    }),
+                                    image: new ol.style.Circle({
+                                        radius: 7,
+                                        fill: new ol.style.Fill({
+                                            color: colorLine
+                                        })
+                                    })
+                                })
+                            });
+
+                            feature.set('name',carNumber);
+                            feature.set('color',colorLine);
+                            feature.set('type',typeFeature);
+                            feature.set('date',"2013-3-28");
+
+                            trajectoryFeatures.push(feature);
+
+                            // feature
+                            ActiveDataFactory.callTrajectoryData(carNumber,typeFeature)
+                                .then(function (data) {
+                                    var trajectoryCoords =data.geometry.coordinates;
+                                    var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                                    trajectoryCoords.forEach(function (coord) {
+                                        var c = transformFn(coord, undefined, coord.length);
+                                        coord[0] = c[0];
+                                        coord[1] = c[1];
+                                    });
+                                    var features = MapViewerSever.trajectoryFeatures.getArray();
+                                    var featureCurrent = features.filter(function(f){ return f.get('name')==carNumber});
+                                    var geoM  = new ol.geom.LineString(trajectoryCoords);
+                                    featureCurrent[0].setGeometry(new ol.geom.LineString(trajectoryCoords));
+
+                                },function (data) {
+                                    alert(data);
+                                });
+                            // trajectoryLayer.setStyle =  new ol.style.Style({
+                            //     stroke: new ol.style.Stroke({
+                            //                         color: '#ffcc00',
+                            //                         width: 2
+                            //                     }),
+                            //     fill: new ol.style.Fill({
+                            //         color: '#ffcc00'
+                            //     })
+                            // });
+
+                          //  map.addLayer(trajectoryLayer);
+                        }
+                        ActiveDataFactory.isMapUpdate =false;
+
+
+
+
+
+
+                    }
+                });
+                
             }
         }
     }
@@ -297,8 +244,6 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
             var selectedData = ActiveDataFactory.getSelectData();
             var dateRange = ActiveDataFactory.getDateRange();
 
-
-
         },
         link:{
                 pre: function (tElement,tAttrs,transclude) {
@@ -306,75 +251,73 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                 },
                 post:function (scope,iElement,iAttrs,controller) {
 
-                    var month = 30 * 24 * 60 * 60 * 1000;
-                    var hours = 60 * 60 * 1000;
-                    var endTime = 0;
-                    var startTime = Date.now();
+                    iAttrs.$observe('title',function () {
 
-                    var EventData = [];
+                        var month = 30 * 24 * 60 * 60 * 1000;
+                        var hours = 60 * 60 * 1000;
+                        var endTime = 0;
+                        var startTime = Date.now();
 
-
-                    // event time graph
-                    function renderTimeGraph(data) {
-                        if (data.length > 0) {
-                            var color = d3.scale.category10();
-
-                            var boxTitle = iElement[0].children[0].children[0];
-                            boxTitle.innerText = iElement.attr('my-line-chart');
-                            var boxBody = iElement.context.lastChild;
-                            var width = boxBody.offsetWidth;
-                            if (width <= 0) return;
-
-                            // create chart function
-                            var eventDropsChart = d3.chart.eventDrops()
-                                .eventLineColor(function (datum, index) {
-                                    return color(index);
-                                })
-                                .start(new Date(startTime))
-                                .end(new Date(endTime))
-                                .width(width)
+                        var EventData = [];
 
 
-                            // bind data with DOM
-                            var element = d3.select(boxBody).datum(data);
+                        // event time graph
+                        function renderTimeGraph(data) {
+                            if (data.length > 0) {
+                                var color = d3.scale.category10();
 
-                            // draw the chart
-                            eventDropsChart(element);
-                        }
-                    }
+                                var boxTitle = iElement[0].children[0].children[0];
+                                boxTitle.innerText = iElement.attr('my-line-chart');
+                                var boxBody = iElement.context.lastChild;
+                                var width = boxBody.offsetWidth;
+                                if (width <= 0) return;
 
-                    ActiveDataFactory.callEventData().then(function (data) {
-                        var dataObj = JSON.parse(data);
-                        for(var k=0; k<dataObj.length;k++)
-                        {
-                            var name     = dataObj[k].data.Name;
-                            var eventArr = dataObj[k].data.Events;
-                            var event = {
-                                name: name,
-                                dates: []
-                            };
-                            if (eventArr.length<=0) continue;
-                            for(var i = 0; i<eventArr.length; i++)
-                            {
-                                var dateStr = Number(eventArr[i].time +'000');
-                                var date = new Date(dateStr);
-                                var time = date.getTime();
-                                if(time<startTime) startTime = time;
-                                if(time>endTime) endTime = time;
-                                event.dates.push(date);
+                                // create chart function
+                                var eventDropsChart = d3.chart.eventDrops()
+                                    .eventLineColor(function (datum, index) {
+                                        return color(index);
+                                    })
+                                    .start(new Date(startTime))
+                                    .end(new Date(endTime))
+                                    .width(width)
+
+
+                                // bind data with DOM
+                                var element = d3.select(boxBody).datum(data);
+
+                                // draw the chart
+                                eventDropsChart(element);
                             }
-                            EventData.push(event);
                         }
 
-                        renderTimeGraph(EventData);
+                        ActiveDataFactory.callEventData().then(function (data) {
+                            var dataObj = JSON.parse(data);
+                            for (var k = 0; k < dataObj.length; k++) {
+                                var name = dataObj[k].data.Name;
+                                var eventArr = dataObj[k].data.Events;
+                                var event = {
+                                    name: name,
+                                    dates: []
+                                };
+                                if (eventArr.length <= 0) continue;
+                                for (var i = 0; i < eventArr.length; i++) {
+                                    var dateStr = Number(eventArr[i].time + '000');
+                                    var date = new Date(dateStr);
+                                    var time = date.getTime();
+                                    if (time < startTime) startTime = time;
+                                    if (time > endTime) endTime = time;
+                                    event.dates.push(date);
+                                }
+                                EventData.push(event);
+                            }
+
+                            renderTimeGraph(EventData);
 
 
-                    },function (data) {
-                        alert(data);
+                        }, function (data) {
+                            alert(data);
+                        });
                     });
-
-
-
                    
                 }
             }
@@ -1170,7 +1113,61 @@ stavrDirts.directive('myTrajectoryLayerTable',['MapViewerSever',function (MapVie
 
         }
     }
-}])
+}]);
+
+stavrDirts.directive('mySelectedTable',['$rootScope','ActiveDataFactory',function($rootScope,ActiveDataFactory){
+    return {
+        restrict : 'A',
+        transclude: false,
+        templateUrl:'template/visualtoolhtml/boxTemplate.html',
+        controller: function ($scope,$element,$transclude,$http) {
+
+        },
+        link:{
+            pre: function (tElement,tAttrs,transclude) {
+
+            },
+            post:function (scope,iElement,iAttrs,controller) {
+
+                iAttrs.$observe('title',function () {
+                    var boxTitle = iElement[0].children[0].children[0];
+                    boxTitle.innerText = iElement.attr('my-selected-table');
+                    var boxBody = iElement.context.lastChild;
+                    var width = boxBody.offsetWidth;
+                    if (width <= 0) return;
+                    boxBody.innerHTML = ActiveDataFactory.callSelectedDataTable();
+                    var tableElement = boxBody.firstChild;
+
+                    scope.selectTableView = $(tableElement).DataTable({
+                        "paging": true,
+                        "lengthChange": true,
+                        "searching": true,
+                        "ordering": true,
+                        "info": true,
+                        "autoWidth": true,
+                        "select": true
+                    });
+
+                    var tableBodyElement = boxBody.lastChild;
+                    $(tableBodyElement).on( 'click', 'tr', function () {
+                        var currentTr = this;
+                        var trSet = scope.selectTableView.rows('.active').nodes();
+                        trSet.each(function (e,i) {
+                            if(e!==currentTr)
+                            {
+                                $(e).toggleClass('active');
+                            }
+                        });
+                        $(this).toggleClass('active');
+                    } );
+
+                });
+
+
+            }
+        }
+    }
+}]);
 
 // stavrDirts.directive('mySideLayout',function () {
 //     return {
