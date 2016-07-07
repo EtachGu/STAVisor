@@ -1941,8 +1941,8 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
     $scope.tableViewClick = function () {
         if($scope.selectTableView){
             var selectedData = $scope.selectTableView.rows('.active').data();
-            if(selectedData.length>0)MapViewerSever.selectLayer(selectedData[0][0]);
-            else MapViewerSever.selectLayer("");
+            if(selectedData.length>0)MapViewerSever.selectTrajectoryFeatures(selectedData[0][0]);
+            else MapViewerSever.selectTrajectoryFeatures("");
         }
     };
 

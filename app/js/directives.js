@@ -158,11 +158,11 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                         var featureSet = [];
 
                         for(var i=0;i<selectData.length;i++){
-
-                            var carNumber = selectData[i][0];
+                            var featureObj = {};
+                            featureObj.carNumber = selectData[i][0];
                             //var url = ActiveDataFactory.getTrajUrlByCarNumber(carNumber,typeFeature);
-                            var colorLine = d3Color(i);
-
+                            featureObj.colorLine = d3Color(i);
+                            featureSet[i] = featureObj;
 
                             var feature = new ol.Feature({
                                 style:   new ol.style.Style({
@@ -171,26 +171,27 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                         width: 2
                                     }),
                                     fill: new ol.style.Fill({
-                                        color: colorLine
+                                        color: featureObj.colorLine
                                     }),
                                     image: new ol.style.Circle({
                                         radius: 7,
                                         fill: new ol.style.Fill({
-                                            color: colorLine
+                                            color: featureObj.colorLine
                                         })
                                     })
                                 })
                             });
 
-                            feature.set('name',carNumber);
-                            feature.set('color',colorLine);
+                            feature.set('name',featureObj.carNumber);
+                            feature.set('color',featureObj.colorLine);
                             feature.set('type',typeFeature);
                             feature.set('date',"2013-3-28");
 
                             trajectoryFeatures.push(feature);
 
-                            // feature
-                            ActiveDataFactory.callTrajectoryData(carNumber,typeFeature)
+                        }
+                        featureSet.forEach(function (obj) {
+                            ActiveDataFactory.callTrajectoryData(obj.carNumber,typeFeature)
                                 .then(function (data) {
                                     var trajectoryCoords =data.geometry.coordinates;
                                     var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
@@ -200,25 +201,32 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                         coord[1] = c[1];
                                     });
                                     var features = MapViewerSever.trajectoryFeatures.getArray();
-                                    var featureCurrent = features.filter(function(f){ return f.get('name')==carNumber});
-                                    var geoM  = new ol.geom.LineString(trajectoryCoords);
-                                    featureCurrent[0].setGeometry(new ol.geom.LineString(trajectoryCoords));
+                                    var featureCurrent = features.filter(function(f){ return f.get('name')==obj.carNumber});
+
+
+                                    function geomCreator(type,coords) {
+                                        var geometry = null;
+                                        switch (type){
+                                            case 'LineString': geometry = new ol.geom.LineString(coords); break;
+                                            case 'LinearRing': geometry = new ol.geom.LinearRing(coords); break;
+                                            case 'MultiLineString': geometry = new ol.geom.MultiLineString(coords); break;
+                                            case 'MultiPoint': geometry = new ol.geom.MultiPoint(coords); break;
+                                            case 'MultiPolygon': geometry = new ol.geom.MultiPolygon(coords); break;
+                                            case 'Point': geometry = new ol.geom.Point(coords); break;
+                                            case 'Polygon': geometry = new ol.geom.Polygon(coords); break;
+                                        }
+                                        return geometry;
+                                    }
+
+                                    var geoM  = geomCreator(typeFeature,trajectoryCoords);
+
+                                    featureCurrent[0].setGeometry(geoM);
 
                                 },function (data) {
                                     alert(data);
                                 });
-                            // trajectoryLayer.setStyle =  new ol.style.Style({
-                            //     stroke: new ol.style.Stroke({
-                            //                         color: '#ffcc00',
-                            //                         width: 2
-                            //                     }),
-                            //     fill: new ol.style.Fill({
-                            //         color: '#ffcc00'
-                            //     })
-                            // });
+                        });
 
-                          //  map.addLayer(trajectoryLayer);
-                        }
                         ActiveDataFactory.isMapUpdate =false;
 
 
@@ -336,6 +344,9 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
 
             },
             post:function (scope,iElement,iAttrs,controller) {
+
+                var force;
+
                 function name(d) { return d.name; }
                 function group(d) { return d.group; }
 
@@ -379,7 +390,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     return shapes;
                 }
 
-                var force = d3.layout.force()
+                force = d3.layout.force()
                     .charge(-2000)
                     .friction(0.3)
                     .linkDistance(20)
@@ -411,7 +422,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .attr('d', function(d) { return 'M'+d.join(',')+'Z'; });
                 });
 
-                d3.json('mbar/relation.json', function(err, data) {
+                d3.json('mbar/relation2.json', function(err, data) {
 
                     data.nodes.forEach(function(d, i) {
                         d.id = i;
@@ -461,6 +472,20 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .links( data.links )
                         .start();
                 });
+
+
+                iAttrs.$observe('style',function () {
+
+                    width = iElement.width();
+                    height = width * 0.5;
+                    var svg = d3.select('svg')
+                        .attr('width', newValue.width)
+                        .attr('height', newValue.height);
+
+                    force.size([width,height]);
+
+                });
+
             }
         }
     }
@@ -1137,6 +1162,7 @@ stavrDirts.directive('mySelectedTable',['$rootScope','ActiveDataFactory',functio
                     if (width <= 0) return;
                     boxBody.innerHTML = ActiveDataFactory.callSelectedDataTable();
                     var tableElement = boxBody.firstChild;
+                    if(tableElement==null) return;
 
                     scope.selectTableView = $(tableElement).DataTable({
                         "paging": true,
