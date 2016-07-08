@@ -246,7 +246,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
     return {
         restrict : 'A',
         transclude: false,
-        templateUrl:'template/visualtoolhtml/boxTemplate.html',
+        templateUrl:'template/visualtoolhtml/boxTimeLineTemplate.html',
         controller: function ($scope,$element,$transclude,$http) {
 
             var selectedData = ActiveDataFactory.getSelectData();
@@ -258,6 +258,49 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                 },
                 post:function (scope,iElement,iAttrs,controller) {
+
+                    // Control tiemline  displayer
+                    var margin = {top: 10, right: 30, bottom: 40, left: 30},
+                        width = iElement.width() * 0.65 - margin.left - margin.right,
+                        parentHeight = 120,
+                        height = parentHeight - margin.top - margin.bottom;
+
+                    var timeLineBarDOM = iElement.find("#timaLineBar")[0];
+                    var svg = d3.select(timeLineBarDOM).append("svg")
+                        .attr("width",  iElement.width() * 0.65 )
+                        .attr("height", parentHeight);
+
+                    svg.append("defs").append("clipPath")
+                        .attr("id", "clip")
+                        .append("rect")
+                        .attr("width", width)
+                        .attr("height", height);
+
+                    var context = svg.append("g")
+                        .attr("class", "context")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    function brushed() {
+                        // x.domain(brush.empty() ? x2.domain() : brush.extent());
+                        // focus.select(".line").attr("d", area);
+                        // focus.select(".x.axis").call(xAxis);
+                    }
+
+                    var x = d3.time.scale().range([0, width]),
+                        y = d3.scale.linear().range([height, 0]);
+
+
+                    var xAxis = d3.svg.axis().scale(x).orient("bottom"),
+                        yAxis = d3.svg.axis().scale(y).orient("left");
+
+                    var brush = d3.svg.brush()
+                        .x(x)
+                        .on("brush", brushed);
+
+                    var area = d3.svg.line()
+                        .x(function(d) { return x(d.date); })
+                        .y(function(d) { return y(d.count); });
+
 
                     iAttrs.$observe('title',function () {
 
@@ -287,7 +330,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                                     })
                                     .start(new Date(startTime))
                                     .end(new Date(endTime))
-                                    .width(width)
+                                    .width(width);
 
 
                                 // bind data with DOM
@@ -295,11 +338,18 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                                 // draw the chart
                                 eventDropsChart(element);
+
+                              
+
+
                             }
                         }
 
                         ActiveDataFactory.callEventData().then(function (data) {
                             var dataObj = JSON.parse(data);
+                            if(dataObj.length===0) return;
+                            var dataCount = [];
+                            var maxCount = 0;
                             for (var k = 0; k < dataObj.length; k++) {
                                 var name = dataObj[k].data.Name;
                                 var eventArr = dataObj[k].data.Events;
@@ -315,16 +365,97 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                                     if (time < startTime) startTime = time;
                                     if (time > endTime) endTime = time;
                                     event.dates.push(date);
+                                    var dateS   = date.toDateString();
+                                    var itemDate = dataCount.find(function(e){ return e.date.toDateString() == dateS});
+                                    if(itemDate){
+                                        itemDate.count +=1;
+                                    }
+                                    else{
+                                        var bar = { date:new Date(dateS),count:1}
+                                        dataCount.push(bar);
+                                    }
+                                    if(itemDate && (itemDate.count > maxCount)) maxCount = itemDate.count ;
                                 }
                                 EventData.push(event);
                             }
 
+
                             renderTimeGraph(EventData);
 
+                            dataCount.sort(function(a,b){
+                                if(a.date > b.date){
+                                    return 1;
+                                }
+                                else{
+                                    return -1;
+                                }
+                            });
+
+
+
+
+
+                            x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
+                            y.domain([0,maxCount]);
+
+                            context.select("path").remove();
+                            context.select("g").remove();
+                            context.select("g").remove();
+                            context.append("path")
+                                .datum(dataCount)
+                                .attr("class", "line")
+                                .attr("d", area);
+
+                            context.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+
+                            context.append("g")
+                                .attr("class", "y axis")
+                                .call(yAxis);
+
+                            context.append("g")
+                                .attr("class", "x brush")
+                                .call(brush)
+                                .selectAll("rect")
+                                .attr("y", -6)
+                                .attr("height", height + 7);
 
                         }, function (data) {
                             alert(data);
                         });
+
+                    });
+
+                    angular.element(iElement).on('mouseup', function(event) {
+                        var newWidth = iElement.width() * 0.65 - margin.left - margin.right;
+                        if(width == newWidth) return;
+                        width = newWidth;
+                        height = parentHeight - margin.top - margin.bottom;
+                        svg.attr("width",  iElement.width() * 0.65 );
+                        svg.select("defs").select("clipPath")
+                            .select("rect")
+                            .attr("width", width)
+                            .attr("height", height);
+                        x = d3.time.scale().range([0, width]),
+                            y = d3.scale.linear().range([height, 0]);
+
+                        scope.isUpdateTimeView = !scope.isUpdateTimeView;
+                    });
+
+                    angular.element($(window)).bind('resize', function() {
+                        width = iElement.width() * 0.65 - margin.left - margin.right;
+                        height = parentHeight - margin.top - margin.bottom;
+                        svg.attr("width",  iElement.width() * 0.65 );
+                        svg.select("defs").select("clipPath")
+                            .select("rect")
+                            .attr("width", width)
+                            .attr("height", height);
+                        x = d3.time.scale().range([0, width]),
+                            y = d3.scale.linear().range([height, 0]);
+
+                        scope.isUpdateTimeView = !scope.isUpdateTimeView;
                     });
                    
                 }
