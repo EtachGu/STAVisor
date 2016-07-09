@@ -1,0 +1,40 @@
+<div class="box-header">
+    <h3 class="box-title"></h3>
+    <div class="box-tools pull-right">
+        <div class="btn-group">
+            <button class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i></button>
+            <ul class="dropdown-menu pull-right" role="menu">
+                <li><a ng-click="toggleForceTool()">control tool</a></li>
+                <li><a ng-click="resetForceTool()">reset</a></li>
+                <li class="divider"></li>
+                <li><a href="">refresh</a></li>
+            </ul>
+        </div>
+        <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+        <!--<button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>-->
+    </div>
+</div>
+<div class="box-body">
+    <div id="forceTool" style="display:{{isShowForceTool}}">
+        <div class="form-group">
+            <label for="range_1" class="col-sm-2 control-label">Charge</label>
+            <div class="col-sm-10">
+                <input id="range_1" type="text" name="range_1" value="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="range_2" class="col-sm-2 control-label">Friction</label>
+            <div class="col-sm-10">
+                <input id="range_2" type="text" name="range_2" value="">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="range_3" class="col-sm-2 control-label">LinkDistance</label>
+            <div class="col-sm-10">
+                <input id="range_3" type="text" name="range_2" value="">
+            </div>
+        </div>
+    </div>
+
+
+</div>

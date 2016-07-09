@@ -301,49 +301,43 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         .x(function(d) { return x(d.date); })
                         .y(function(d) { return y(d.count); });
 
+                    var EventData = [];
+                    var endTime = 0;
+                    var startTime = Date.now();
+
+                    // event time graph
+                    function renderTimeGraph(data) {
+                        if (data.length > 0) {
+                            var color = d3.scale.category10();
+
+                            var boxTitle = iElement[0].children[0].children[0];
+                            boxTitle.innerText = iElement.attr('my-line-chart');
+                            var boxBody = iElement.context.lastChild;
+                            var width = boxBody.offsetWidth;
+                            if (width <= 0) return;
+
+                            // create chart function
+                            var eventDropsChart = d3.chart.eventDrops()
+                                .eventLineColor(function (datum, index) {
+                                    return color(index);
+                                })
+                                .start(new Date(startTime))
+                                .end(new Date(endTime))
+                                .width(width);
+
+
+                            // bind data with DOM
+                            var element = d3.select(boxBody).datum(data);
+
+                            // draw the chart
+                            eventDropsChart(element);
+                        }
+                    }
 
                     iAttrs.$observe('title',function () {
 
                         var month = 30 * 24 * 60 * 60 * 1000;
                         var hours = 60 * 60 * 1000;
-                        var endTime = 0;
-                        var startTime = Date.now();
-
-                        var EventData = [];
-
-
-                        // event time graph
-                        function renderTimeGraph(data) {
-                            if (data.length > 0) {
-                                var color = d3.scale.category10();
-
-                                var boxTitle = iElement[0].children[0].children[0];
-                                boxTitle.innerText = iElement.attr('my-line-chart');
-                                var boxBody = iElement.context.lastChild;
-                                var width = boxBody.offsetWidth;
-                                if (width <= 0) return;
-
-                                // create chart function
-                                var eventDropsChart = d3.chart.eventDrops()
-                                    .eventLineColor(function (datum, index) {
-                                        return color(index);
-                                    })
-                                    .start(new Date(startTime))
-                                    .end(new Date(endTime))
-                                    .width(width);
-
-
-                                // bind data with DOM
-                                var element = d3.select(boxBody).datum(data);
-
-                                // draw the chart
-                                eventDropsChart(element);
-
-                              
-
-
-                            }
-                        }
 
                         ActiveDataFactory.callEventData().then(function (data) {
                             var dataObj = JSON.parse(data);
@@ -371,7 +365,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                                         itemDate.count +=1;
                                     }
                                     else{
-                                        var bar = { date:new Date(dateS),count:1}
+                                        var bar = { date:new Date(dateS),count:1};
                                         dataCount.push(bar);
                                     }
                                     if(itemDate && (itemDate.count > maxCount)) maxCount = itemDate.count ;
@@ -428,7 +422,8 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                     });
 
-                    angular.element(iElement).on('mouseup', function(event) {
+
+                    var resizeView = function(){
                         var newWidth = iElement.width() * 0.65 - margin.left - margin.right;
                         if(width == newWidth) return;
                         width = newWidth;
@@ -441,23 +436,16 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         x = d3.time.scale().range([0, width]),
                             y = d3.scale.linear().range([height, 0]);
 
-                        scope.isUpdateTimeView = !scope.isUpdateTimeView;
-                    });
+                        renderTimeGraph(EventData);
+                    };
 
-                    angular.element($(window)).bind('resize', function() {
-                        width = iElement.width() * 0.65 - margin.left - margin.right;
-                        height = parentHeight - margin.top - margin.bottom;
-                        svg.attr("width",  iElement.width() * 0.65 );
-                        svg.select("defs").select("clipPath")
-                            .select("rect")
-                            .attr("width", width)
-                            .attr("height", height);
-                        x = d3.time.scale().range([0, width]),
-                            y = d3.scale.linear().range([height, 0]);
+                    var timer;
+                    var updateScene = function () {
+                        resizeView();
+                        timer = setTimeout(updateScene, 1000);
+                    };
+                    updateScene();
 
-                        scope.isUpdateTimeView = !scope.isUpdateTimeView;
-                    });
-                   
                 }
             }
         }
@@ -467,14 +455,61 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
     return {
         restrict : 'A',
         transclude: false,
-        templateUrl:'template/visualtoolhtml/boxTemplate.html',
+        templateUrl:'template/visualtoolhtml/boxRelationGraphTemplate.html',
         controller: function ($scope,$element,$transclude,$http) {
+
+
         },
         link:{
             pre: function (tElement,tAttrs,transclude) {
 
             },
             post:function (scope,iElement,iAttrs,controller) {
+
+                scope.isShowForceTool = "block";
+                scope.toggleForceTool = function(){
+                    switch(scope.isShowForceTool){
+                        case "block" : scope.isShowForceTool = "none"; break;
+                        case "none": scope.isShowForceTool = "block"; break;
+                    }
+                };
+
+                // charge
+                iElement.find('#range_1').ionRangeSlider({
+                    min: -3000,
+                    max: 3000,
+                    from: -2000,
+                    type: 'single',
+                    step: 10,
+                    prettify: false,
+                    grid: true
+                });
+                // Friction
+                iElement.find('#range_2').ionRangeSlider({
+                    min: 0,
+                    max: 1,
+                    from:0.3,
+                    type: 'single',
+                    step: 0.01,
+                    prettify: false,
+                    grid: true
+                });
+                //LinkDistance
+                iElement.find('#range_3').ionRangeSlider({
+                    min: -1000,
+                    max: 1000,
+                    from: 20,
+                    type: 'single',
+                    step: 1,
+                    prettify: false,
+                    grid: true
+                });
+
+                scope.resetForceTool = function(){
+                    iElement.find('#range_1').data("ionRangeSlider").reset();
+                    iElement.find('#range_2').data("ionRangeSlider").reset();
+                    iElement.find('#range_3').data("ionRangeSlider").reset();
+                };
 
                 var force;
 
@@ -505,7 +540,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                 var voronoi = d3.geom.voronoi()
                     .x(function(d) { return d.x; })
                     .y(function(d) { return d.y; })
-                    .clipExtent([[-10, -10], [width+10, height+10]]);
+                    .clipExtent([[10, 10], [width-20, height-20]]);
 
                 function recenterVoronoi(nodes) {
                     var shapes = [];
@@ -523,7 +558,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
 
                 force = d3.layout.force()
                     .charge(-2000)
-                    .friction(0.3)
+                    .gravity(1)
                     .linkDistance(20)
                     .size([width,height]);
 
@@ -596,7 +631,8 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .style("font-size", 16)
                         .text(function (d, i) {
                             return data.nodes[i].name;
-                        });
+                        })
+                        .attr("onselectstart","return false");
 
                     force
                         .nodes( data.nodes )
@@ -604,18 +640,43 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .start();
                 });
 
+                var slidvalueChange = function (){
+                    //change force
+                    force.charge(iElement.find("#range_1")[0].value);
+                    // force.friction(iElement.find("#range_2")[0].value);
+                    force.gravity(iElement.find("#range_2")[0].value);
+                    force.linkDistance(iElement.find("#range_3")[0].value);
+                    force.start();
+                };
+                iElement.find("#range_1").on("change",slidvalueChange);
+                iElement.find("#range_2").on("change",slidvalueChange);
+                iElement.find("#range_3").on("change",slidvalueChange);
 
-                iAttrs.$observe('style',function () {
 
-                    width = iElement.width();
+                var resizeView = function(){
+                    var newWidth = iElement.width();
+                    if(width == newWidth) return;
+                    width = newWidth;
                     height = width * 0.5;
-                    var svg = d3.select('svg')
-                        .attr('width', newValue.width)
-                        .attr('height', newValue.height);
+                    svg.attr('width', newWidth)
+                        .attr('height', height);
 
                     force.size([width,height]);
 
-                });
+                    voronoi.clipExtent([[10, 10], [width-20, height-20]]);
+
+                    force.start();
+                };
+
+                var timer;
+                var updateScene = function () {
+                    resizeView();
+                    timer = setTimeout(updateScene, 1000);
+                };
+                updateScene();
+
+
+
 
             }
         }
