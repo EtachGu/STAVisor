@@ -993,9 +993,10 @@ stavrCtrl.controller('MapLayerMICtrl',['$scope','$uibModalInstance','$rootScope'
 }]);
 stavrCtrl.controller('TrajectoryLayerMICtrl',['$scope','$uibModalInstance','$rootScope','MapViewerSever','ActiveDataFactory',function ($scope, $uibModalInstance,$rootScope,MapViewerSever,ActiveDataFactory) {
     var map = MapViewerSever.map;
-    var layers = map.getLayers().getArray();
+    // var layers = map.getLayers().getArray();
+    var layers = MapViewerSever.trajectoryFeatures.getArray();
     var layerSet = [];
-    for(var i=1;i<layers.length;i++)
+    for(var i=0;i<layers.length;i++)
     {
         var layer = layers[i];
         var layerIntance ={};
@@ -1004,7 +1005,8 @@ stavrCtrl.controller('TrajectoryLayerMICtrl',['$scope','$uibModalInstance','$roo
         layerIntance.color = "color:"+ layer.get('color');
         layerIntance.type = layer.get('type');
         layerIntance.date = layer.get('date');
-        layerIntance.number = layer.getSource().getFeatures().length;
+        // layerIntance.number = layer.getSource().getFeatures().length;
+        layerIntance.number = 0;
         layerSet.push(layerIntance);
     }
 

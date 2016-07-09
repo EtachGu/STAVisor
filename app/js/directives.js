@@ -148,12 +148,12 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                     if(ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
 
                         var map = MapViewerSever.map;
-                        MapViewerSever.removeAllLayers();
+                       // MapViewerSever.removeAllLayers();
 
                         var trajectoryFeatures = MapViewerSever.trajectoryFeatures;
 
                         var selectData = ActiveDataFactory.getSelectData();
-                        var typeFeature = "LineString";
+                        var typeFeature = "MultiPoint";
                         var d3Color = d3.scale.category10();
                         var featureSet = [];
 
@@ -221,6 +221,22 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                     var geoM  = geomCreator(typeFeature,trajectoryCoords);
 
                                     featureCurrent[0].setGeometry(geoM);
+                                    var color = featureCurrent[0].get("color");
+                                    featureCurrent[0].setStyle( new ol.style.Style({
+                                        stroke: new ol.style.Stroke({
+                                            color: '#ffcc00',
+                                            width: 2
+                                        }),
+                                        fill: new ol.style.Fill({
+                                            color: color
+                                        }),
+                                        image: new ol.style.Circle({
+                                            radius: 7,
+                                            fill: new ol.style.Fill({
+                                                color: color
+                                            })
+                                        })
+                                    }));
 
                                 },function (data) {
                                     alert(data);
@@ -338,6 +354,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                         var month = 30 * 24 * 60 * 60 * 1000;
                         var hours = 60 * 60 * 1000;
+                        EventData = [];
 
                         ActiveDataFactory.callEventData().then(function (data) {
                             var dataObj = JSON.parse(data);
@@ -392,9 +409,10 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                             x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
                             y.domain([0,maxCount]);
 
-                            context.select("path").remove();
-                            context.select("g").remove();
-                            context.select("g").remove();
+
+
+                            context.selectAll("path").remove();
+                            context.selectAll("g").remove();
                             context.append("path")
                                 .datum(dataCount)
                                 .attr("class", "line")
