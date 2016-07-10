@@ -20,14 +20,14 @@
             <div class="col-md-3 col-sm-3">
                 <div>
                      <span>
-                         <a class="btn btn-app"><i class="fa  fa-play"></i>Play</a>
-                         <a class="btn btn-app"><i class="fa  fa-stop"></i>Stop</a>
+                         <a class="btn btn-app" ng-click="play()"><i class="fa  fa-play"></i>Play</a>
+                         <a class="btn btn-app" ng-click="stop()"><i class="fa  fa-stop"></i>Stop</a>
                      </span>
                 </div>
                 <div>
                     <span>
-                        <a class="btn btn-app"><i class="fa  fa-backward"></i>Backward</a>
-                        <a class="btn btn-app"><i class="fa  fa-forward"></i>Forward</a>
+                        <a class="btn btn-app" ng-click="backward()"><i class="fa  fa-backward"></i>Backward</a>
+                        <a class="btn btn-app" ng-click="forward()"><i class="fa  fa-forward"></i>Forward</a>
                     </span>
                 </div>
             </div>
@@ -36,4 +36,5 @@
             </div>
         </div>
     </div>
+    <div id="eventDrop"></div>
 </div>

@@ -300,6 +300,15 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         // x.domain(brush.empty() ? x2.domain() : brush.extent());
                         // focus.select(".line").attr("d", area);
                         // focus.select(".x.axis").call(xAxis);
+                        var extent  = brush.extent();
+                        if(brush.empty()){
+                            scope.stop()
+                        };
+
+                    }
+
+                    function brushStart(){
+                        scope.stop()
                     }
 
                     var x = d3.time.scale().range([0, width]),
@@ -311,7 +320,8 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                     var brush = d3.svg.brush()
                         .x(x)
-                        .on("brush", brushed);
+                        .on("brush", brushed)
+                        .on("brushstart", brushStart);
 
                     var area = d3.svg.line()
                         .x(function(d) { return x(d.date); })
@@ -339,11 +349,17 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                                 })
                                 .start(new Date(startTime))
                                 .end(new Date(endTime))
-                                .width(width);
+                                .width(width)
+                                .eventZoom(function(e){
+
+                                })
+                                .axisFormat(function(axis){
+
+                                });
 
 
                             // bind data with DOM
-                            var element = d3.select(boxBody).datum(data);
+                            var element = d3.select(iElement.find("#eventDrop")[0]).datum(data);
 
                             // draw the chart
                             eventDropsChart(element);
@@ -408,6 +424,8 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                             x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
                             y.domain([0,maxCount]);
+                            xAxis = d3.svg.axis().scale(x).orient("bottom"),
+                                yAxis = d3.svg.axis().scale(y).orient("left");
 
 
 
@@ -464,6 +482,57 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                     };
                     updateScene();
 
+                    //Animation button control
+                    var timerAinmation = null, speedAnimation = 1000;
+                    scope.play = function(){
+                        if(brush.empty())
+                        {
+                            return alert("Need brush the timeline");
+                        }
+                        if(timerAinmation)  clearTimeout(timerAinmation), speedAnimation = 1000;
+                        var z = [];
+                        //z[0] = new Date(startTime);
+                        var brushBackRectWidth = context.select(".brush").select(".background").attr("width");
+                        var brushRect = context.select(".brush").select(".extent");
+                        var x_w = +brushRect.attr("x");
+                        var widthRect = +brushRect.attr("width");
+                        var x_e = x_w + widthRect;
+                        z[0] = x.invert(x_w);
+                        z[1] = x.invert(x_e);
+                        // brush.extent(z);
+
+
+                        var player = function(){
+                            z[0].setDate(z[0].getDate() + 1);
+                            z[1].setDate(z[1].getDate() + 1);
+                            var xOffset = x(z[0]);
+                            var xEOffset = xOffset + widthRect;
+                            if(brushBackRectWidth < xEOffset){
+                                xOffset = 0;
+                                z[0] = x.invert(xOffset);
+                                z[1] = x.invert(widthRect);
+                            }
+                            brushRect.attr("x",xOffset);
+                            timerAinmation = setTimeout(player,speedAnimation);
+                        };
+                        player();
+
+                    };
+
+                    scope.stop = function(){
+                         clearTimeout(timerAinmation);
+                    };
+
+                    scope.forward = function(){
+                        if(speedAnimation>200)speedAnimation *= 0.8;
+                    };
+
+                    scope.backward = function(){
+                        if(speedAnimation<3000)speedAnimation *= 1.3;
+                    };
+
+
+
                 }
             }
         }
@@ -504,19 +573,29 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                 });
                 // Friction
                 iElement.find('#range_2').ionRangeSlider({
-                    min: 0,
+                    min: -1,
                     max: 1,
-                    from:0.3,
+                    from:0.9,
+                    type: 'single',
+                    step: 0.01,
+                    prettify: false,
+                    grid: true
+                });
+                // Gravity
+                iElement.find('#range_3').ionRangeSlider({
+                    min: -1,
+                    max: 1,
+                    from:0.85,
                     type: 'single',
                     step: 0.01,
                     prettify: false,
                     grid: true
                 });
                 //LinkDistance
-                iElement.find('#range_3').ionRangeSlider({
+                iElement.find('#range_4').ionRangeSlider({
                     min: -1000,
                     max: 1000,
-                    from: 20,
+                    from: -20,
                     type: 'single',
                     step: 1,
                     prettify: false,
@@ -527,6 +606,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     iElement.find('#range_1').data("ionRangeSlider").reset();
                     iElement.find('#range_2').data("ionRangeSlider").reset();
                     iElement.find('#range_3').data("ionRangeSlider").reset();
+                    iElement.find('#range_4').data("ionRangeSlider").reset();
                 };
 
                 var force;
@@ -534,11 +614,11 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                 function name(d) { return d.name; }
                 function group(d) { return d.group; }
 
-                //var color = d3.scale.category10();
-                var color = function(i){
-                    if(i==1) return '#1f77b4';
-                    else return '#ff7f0e';
-                };
+                var color = d3.scale.category10();
+                // var color = function(i){
+                //     if(i==1) return '#1f77b4';
+                //     else return '#ff7f0e';
+                // };
                 function colorByGroup(d) { return color(group(d)); }
 
                 var boxTitle = iElement[0].children[0].children[0];
@@ -577,7 +657,8 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                 force = d3.layout.force()
                     .charge(-2000)
                     .gravity(1)
-                    .linkDistance(20)
+                    .friction(0.9)
+                    .linkDistance(-20)
                     .size([width,height]);
 
                 force.on('tick', function() {
@@ -599,7 +680,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     clip.enter().append('clipPath')
                         .attr('id', function(d) { return 'clip-'+d.point.index; })
                         .attr('class', 'clip');
-                    clip.exit().remove()
+                    clip.exit().remove();
 
                     clip.selectAll('path').remove();
                     clip.append('path')
@@ -661,14 +742,15 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                 var slidvalueChange = function (){
                     //change force
                     force.charge(iElement.find("#range_1")[0].value);
-                    // force.friction(iElement.find("#range_2")[0].value);
-                    force.gravity(iElement.find("#range_2")[0].value);
-                    force.linkDistance(iElement.find("#range_3")[0].value);
+                    force.friction(iElement.find("#range_2")[0].value);
+                    force.gravity(iElement.find("#range_3")[0].value);
+                    force.linkDistance(iElement.find("#range_4")[0].value);
                     force.start();
                 };
                 iElement.find("#range_1").on("change",slidvalueChange);
                 iElement.find("#range_2").on("change",slidvalueChange);
                 iElement.find("#range_3").on("change",slidvalueChange);
+                iElement.find("#range_4").on("change",slidvalueChange);
 
 
                 var resizeView = function(){
