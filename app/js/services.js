@@ -136,9 +136,14 @@ stavrServices.factory('MapViewerSever', function () {
         });
 
 
+
+
     // a normal select interaction to handle click
     var select = new ol.interaction.Select();
     map.addInteraction(select);
+    select.on('select', function(e) {
+
+    });
 
     var selectedFeatures = select.getFeatures();
 
@@ -149,18 +154,16 @@ stavrServices.factory('MapViewerSever', function () {
 
     map.addInteraction(dragBox);
 
-
-
     dragBox.on('boxend', function() {
         // features that intersect the box are added to the collection of
         // selected features, and their names are displayed in the "info"
         // div
         var info = [];
         var extent = dragBox.getGeometry().getExtent();
-        vectorSource.forEachFeatureIntersectingExtent(extent, function(feature) {
-            selectedFeatures.push(feature);
-            info.push(feature.get('name'));
-        });
+        // vectorSource.forEachFeatureIntersectingExtent(extent, function(feature) {
+        //     selectedFeatures.push(feature);
+        //     info.push(feature.get('name'));
+        // });
     });
 
     // clear selection when drawing a new box and when clicking on the map
@@ -168,9 +171,11 @@ stavrServices.factory('MapViewerSever', function () {
         selectedFeatures.clear();
 
     });
-    // map.on('click', function() {
-    //     selectedFeatures.clear();
-    // });
+    map.on('click', function() {
+        service.selectedFeatures.clear();
+    });
+
+
 
 
 
@@ -193,6 +198,14 @@ stavrServices.factory('MapViewerSever', function () {
     //     map.addInteraction(draw);
     // }
     // addInteraction();
+
+    //highlight features geometry
+    var highlightLayer  = new ol.layer.Vector({
+       source: new ol.source.Vector()
+    });
+    var highllightSource = highlightLayer.getSource();
+    highlightLayer.setMap(map);
+
     
 
 
@@ -200,6 +213,7 @@ stavrServices.factory('MapViewerSever', function () {
     service.map = map;
     service.trajectoryFeatures = trajectoryFeatures;
     service.trajectoryLayer = trajectoryLayer;
+    service.selectedFeatures = selectedFeatures;
     
 
     service.removeAllLayers = function () {
@@ -209,14 +223,14 @@ stavrServices.factory('MapViewerSever', function () {
         }
     };
     service.selectLayer = function (name) {
-        selectedFeatures.clear();
+        service.selectedFeatures.clear();
         var layers = map.getLayers().getArray();
         layers.forEach(function (layer) {
             var source =  layer.getSource();
             if(layer.get('name') == name){
                 var feature = source.getFeatures();
                 feature.forEach(function (f) {
-                    selectedFeatures.push(f);
+                    service.selectedFeatures.push(f);
                 })
 
             }
@@ -225,12 +239,69 @@ stavrServices.factory('MapViewerSever', function () {
     };
 
     service.selectTrajectoryFeatures = function (name) {
-        selectedFeatures.clear();
+        service.selectedFeatures.clear();
         trajectoryFeatures.getArray().forEach(function (feature) {
             if(feature.get('name') == name){
-                selectedFeatures.push(feature);
+                service.selectedFeatures.push(feature);
             }
         });
+        service.map.render();
+    };
+
+    service.selectTrajectoryFeaturesByUTCTime = function(timeRange){
+        highllightSource.clear();
+        service.trajectoryFeatures.getArray().forEach(function (feature) {
+            var geometryCoords = feature.getGeometry().getCoordinates();
+            var times = feature.getGeometry().get("times");
+            var index = times.map(function(e){
+                var t = +e;
+                var min = timeRange[0];
+                var max = timeRange[1];
+                if(t >= min && t <= max) return true;
+                else return false;
+            });
+            var selectedCoords= geometryCoords.map(function(e,i){
+                if(index[i]) return e;
+            }).filter(function(e){return e!== undefined});
+
+
+
+            var hexcolor = feature.get("color");
+            var alpColor = ol.color.asArray(hexcolor);
+            alpColor = alpColor.slice();
+            alpColor[3] = 0.1;
+            // feature.getStyle().getImage().getFill().setColor(alpColor);
+            feature.setStyle( new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: alpColor
+                    })
+                })
+            }));
+
+            var highAlpColor = ol.color.asArray(hexcolor);
+            highAlpColor = highAlpColor.slice();
+            highAlpColor[3] = 0.9;
+            var newFeature = new ol.Feature({
+                geometry:new ol.geom.MultiPoint(selectedCoords)
+            });
+            newFeature.setStyle(new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: highAlpColor
+                    })
+                })
+            }));
+            highllightSource.addFeature(newFeature);
+
+        });
+        service.map.render();
+    };
+
+    service.clearHighlightFeatures = function(){
+        highllightSource.clear();
     };
 
 

@@ -166,13 +166,13 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                             var feature = new ol.Feature({
                                 style:   new ol.style.Style({
-                                    stroke: new ol.style.Stroke({
-                                        color: '#ffcc00',
-                                        width: 2
-                                    }),
-                                    fill: new ol.style.Fill({
-                                        color: featureObj.colorLine
-                                    }),
+                                    // stroke: new ol.style.Stroke({
+                                    //     color: '#ffcc00',
+                                    //     width: 2
+                                    // }),
+                                    // fill: new ol.style.Fill({
+                                    //     color: featureObj.colorLine
+                                    // }),
                                     image: new ol.style.Circle({
                                         radius: 7,
                                         fill: new ol.style.Fill({
@@ -194,6 +194,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                             ActiveDataFactory.callTrajectoryData(obj.carNumber,typeFeature)
                                 .then(function (data) {
                                     var trajectoryCoords =data.geometry.coordinates;
+                                    var trajectoryTimes = data.geometry.times;
                                     var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
                                     trajectoryCoords.forEach(function (coord) {
                                         var c = transformFn(coord, undefined, coord.length);
@@ -219,17 +220,18 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                     }
 
                                     var geoM  = geomCreator(typeFeature,trajectoryCoords);
+                                    geoM.set("times",trajectoryTimes);
 
                                     featureCurrent[0].setGeometry(geoM);
                                     var color = featureCurrent[0].get("color");
                                     featureCurrent[0].setStyle( new ol.style.Style({
-                                        stroke: new ol.style.Stroke({
-                                            color: '#ffcc00',
-                                            width: 2
-                                        }),
-                                        fill: new ol.style.Fill({
-                                            color: color
-                                        }),
+                                        // stroke: new ol.style.Stroke({
+                                        //     color: '#ffcc00',
+                                        //     width: 2
+                                        // }),
+                                        // fill: new ol.style.Fill({
+                                        //     color: color
+                                        // }),
                                         image: new ol.style.Circle({
                                             radius: 7,
                                             fill: new ol.style.Fill({
@@ -258,7 +260,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
     }
 }]);
 
-stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($interval,ActiveDataFactory) {
+stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFactory', function($interval,MapViewerSever,ActiveDataFactory) {
     return {
         restrict : 'A',
         transclude: false,
@@ -281,6 +283,9 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                 }
 
             };
+            
+            
+            
 
         },
         link:{
@@ -314,11 +319,15 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         // x.domain(brush.empty() ? x2.domain() : brush.extent());
                         // focus.select(".line").attr("d", area);
                         // focus.select(".x.axis").call(xAxis);
-                        var extent  = brush.extent();
-                        if(brush.empty()){
-                            scope.pause();
-                        };
 
+                        if(scope.brush.empty()){
+                            scope.pause();
+                            clearHighlighdPoints();
+                        }else
+                        {
+                            //choose features in this brush domain
+                            updateSelectedPoints(scope.brush.extent());
+                        };
                     }
 
                     function brushStart(){
@@ -332,10 +341,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                     var xAxis = d3.svg.axis().scale(scope.x).orient("bottom"),
                         yAxis = d3.svg.axis().scale(scope.y).orient("left");
 
-                    var brush = d3.svg.brush()
-                        .x(scope.x)
-                        .on("brush", brushed)
-                        .on("brushstart", brushStart);
+
 
                     var area = d3.svg.line()
                         .x(function(d) { return scope.x(d.date); })
@@ -440,6 +446,10 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                             scope.y.domain([0,maxCount]);
                             xAxis = d3.svg.axis().scale( scope.x).orient("bottom"),
                                 yAxis = d3.svg.axis().scale(scope.y).orient("left");
+                            scope.brush = d3.svg.brush()
+                                .x(scope.x)
+                                .on("brush", brushed)
+                                .on("brushstart", brushStart);
 
 
 
@@ -461,7 +471,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                             context.append("g")
                                 .attr("class", "x brush")
-                                .call(brush)
+                                .call(scope.brush)
                                 .selectAll("rect")
                                 .attr("y", -6)
                                 .attr("height", height + 7);
@@ -486,6 +496,10 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         scope.x = d3.time.scale().range([0, width]),
                             scope.y = d3.scale.linear().range([height, 0]);
                         scope.x.domain([new Date(startTime),new Date(endTime)]);
+                        scope.brush = d3.svg.brush()
+                            .x(scope.x)
+                            .on("brush", brushed)
+                            .on("brushstart", brushStart);
 
                         renderTimeGraph(EventData);
                     };
@@ -498,14 +512,14 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                     updateScene();
 
                     //Animation button control
-                    var timerAinmation = null, speedAnimation = 1000;
+                    var timerAinmation = null, speedAnimation = 100;
                     scope.play = function(){
-                        if(brush.empty())
+                        if(scope.brush.empty())
                         {
                             return alert("Need brush the timeline");
                         }
                         if(scope.isPlay){
-                            if(timerAinmation)clearTimeout(timerAinmation), speedAnimation = 1000;
+                            if(timerAinmation)clearTimeout(timerAinmation), speedAnimation = 100;
                             scope.changePlayState();
                             return ;
                         }
@@ -527,6 +541,7 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         var player = function(){
                             z[0].setDate(z[0].getDate() + 1);
                             z[1].setDate(z[1].getDate() + 1);
+                            updateSelectedPoints(z);
                             var xOffset = scope.x(z[0]);
                             var xEOffset = xOffset + widthRect;
                             if(brushBackRectWidth < xEOffset){
@@ -549,11 +564,25 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                     };
 
                     scope.forward = function(){
-                        if(speedAnimation>200)speedAnimation *= 0.8;
+                        if(speedAnimation>30)speedAnimation *= 0.8;
                     };
 
                     scope.backward = function(){
-                        if(speedAnimation<3000)speedAnimation *= 1.3;
+                        if(speedAnimation<1000)speedAnimation *= 1.3;
+                    };
+
+
+
+                    // selected features points  by  brush
+                    function updateSelectedPoints(brushExtent){
+                        var timeRange = [];
+                        timeRange[0] = brushExtent[0].getTime()/1000;
+                        timeRange[1] = brushExtent[1].getTime()/1000;
+
+                        MapViewerSever.selectTrajectoryFeaturesByUTCTime(timeRange);
+                    }
+                    function clearHighlighdPoints(){
+                        MapViewerSever.clearHighlightFeatures();
                     };
 
 
