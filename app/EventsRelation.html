@@ -101,50 +101,50 @@
                                         </li>
                                     </ul>
                                 </section>
-                                <ul id="controlToggle">
-                                    <li>
-                                        <input type="radio" name="type" value="none" id="noneToggle"
-                                               ng-click="toggleControl(this);" checked="checked" />
-                                        <label for="noneToggle">navigate</label>
-                                    </li>
-                                    <li>
-                                        <input type="radio" name="type" value="point" id="pointToggle"
-                                               ng-click="toggleControl(this);" />
-                                        <label for="pointToggle">draw point</label>
-                                    </li>
-                                    <li>
-                                        <input type="radio" name="type" value="line" id="lineToggle"
-                                               ng-click="toggleControl(this);" />
-                                        <label for="lineToggle">draw line</label>
-                                    </li>
-                                    <li>
-                                        <input type="radio" name="type" value="polygon" id="polygonToggle"
-                                               ng-click="toggleControl(this);" />
-                                        <label for="polygonToggle">draw polygon</label>
-                                    </li>
-                                    <li>
-                                        <input type="radio" name="type" value="selecthover" id="selecthoverToggle"
-                                               ng-click="toggleControl(this);" />
-                                        <label for="selecthoverToggle">Select features on hover</label>
-                                    </li>
-                                    <li>
-                                        <input type="radio" name="type" value="select" id="selectToggle"
-                                               ng-click="toggleControl(this);" />
-                                        <label for="selectToggle">select feature (<span id="counter">0</span> features selected)</label>
-                                        <ul>
-                                            <li>
-                                                <input id="box" type="checkbox" checked="checked"
-                                                       name="box" ng-click="update()" />
-                                                <label for="box">select features in a box</label>
-                                            </li>
-                                            <li>
-                                                <input id="clickout" type="checkbox"
-                                                       name="clickout" ng-click="update()" />
-                                                <label for="clickout">click out to unselect features</label>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
+                                <!--<ul id="controlToggle">-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="none" id="noneToggle"-->
+                                               <!--ng-click="toggleControl(this);" checked="checked" />-->
+                                        <!--<label for="noneToggle">navigate</label>-->
+                                    <!--</li>-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="point" id="pointToggle"-->
+                                               <!--ng-click="toggleControl(this);" />-->
+                                        <!--<label for="pointToggle">draw point</label>-->
+                                    <!--</li>-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="line" id="lineToggle"-->
+                                               <!--ng-click="toggleControl(this);" />-->
+                                        <!--<label for="lineToggle">draw line</label>-->
+                                    <!--</li>-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="polygon" id="polygonToggle"-->
+                                               <!--ng-click="toggleControl(this);" />-->
+                                        <!--<label for="polygonToggle">draw polygon</label>-->
+                                    <!--</li>-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="selecthover" id="selecthoverToggle"-->
+                                               <!--ng-click="toggleControl(this);" />-->
+                                        <!--<label for="selecthoverToggle">Select features on hover</label>-->
+                                    <!--</li>-->
+                                    <!--<li>-->
+                                        <!--<input type="radio" name="type" value="select" id="selectToggle"-->
+                                               <!--ng-click="toggleControl(this);" />-->
+                                        <!--<label for="selectToggle">select feature (<span id="counter">0</span> features selected)</label>-->
+                                        <!--<ul>-->
+                                            <!--<li>-->
+                                                <!--<input id="box" type="checkbox" checked="checked"-->
+                                                       <!--name="box" ng-click="update()" />-->
+                                                <!--<label for="box">select features in a box</label>-->
+                                            <!--</li>-->
+                                            <!--<li>-->
+                                                <!--<input id="clickout" type="checkbox"-->
+                                                       <!--name="clickout" ng-click="update()" />-->
+                                                <!--<label for="clickout">click out to unselect features</label>-->
+                                            <!--</li>-->
+                                        <!--</ul>-->
+                                    <!--</li>-->
+                                <!--</ul>-->
                             </div>
                         </div><!-- /.tab-pane -->
 
@@ -165,7 +165,7 @@
 
         </div><!-- /.box -->
 
-        <div class="box" my-graph-chart="RelationGraph" title="{{isUpdateRelationView}}">
+        <div class="box" my-graph-chart="GraphView" title="{{isUpdateRelationView}}">
         </div><!-- /.box -->
 
     </section><!-- /.col -->
@@ -186,8 +186,8 @@
             </div><!-- /.box-body -->
         </div><!-- /.box -->
 
-        <div class="box box-primary" my-line-chart="TimeGraph" title="{{isUpdateTimeView}}" ></div>
-        <div class="box box-primary" my-stack-bar-chart="StackBarChart"  title="{{isUpdateStackView}}" ></div>
+        <div class="box box-primary" my-line-chart="TimeView" title="{{isUpdateTimeView}}" ></div>
+        <!--<div class="box box-primary" my-stack-bar-chart="StackBarChart"  title="{{isUpdateStackView}}" ></div>-->
 
     </section>
 </div>

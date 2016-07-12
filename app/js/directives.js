@@ -267,6 +267,20 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
             var selectedData = ActiveDataFactory.getSelectData();
             var dateRange = ActiveDataFactory.getDateRange();
+            $scope.isPlay = false;
+            $scope.playShow = "block";
+            $scope.pasueShow = "none";
+            $scope.changePlayState = function(){
+                $scope.isPlay = !$scope.isPlay;
+                if($scope.isPlay){
+                    $scope.playShow = "none";
+                    $scope.pasueShow = "block";
+                }else{
+                    $scope.playShow = "block";
+                    $scope.pasueShow = "none";
+                }
+
+            };
 
         },
         link:{
@@ -302,30 +316,30 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         // focus.select(".x.axis").call(xAxis);
                         var extent  = brush.extent();
                         if(brush.empty()){
-                            scope.stop()
+                            scope.pause();
                         };
 
                     }
 
                     function brushStart(){
-                        scope.stop()
+                        scope.pause();
                     }
 
-                    var x = d3.time.scale().range([0, width]),
-                        y = d3.scale.linear().range([height, 0]);
+                    scope.x = d3.time.scale().range([0, width]),
+                        scope.y = d3.scale.linear().range([height, 0]);
 
 
-                    var xAxis = d3.svg.axis().scale(x).orient("bottom"),
-                        yAxis = d3.svg.axis().scale(y).orient("left");
+                    var xAxis = d3.svg.axis().scale(scope.x).orient("bottom"),
+                        yAxis = d3.svg.axis().scale(scope.y).orient("left");
 
                     var brush = d3.svg.brush()
-                        .x(x)
+                        .x(scope.x)
                         .on("brush", brushed)
                         .on("brushstart", brushStart);
 
                     var area = d3.svg.line()
-                        .x(function(d) { return x(d.date); })
-                        .y(function(d) { return y(d.count); });
+                        .x(function(d) { return scope.x(d.date); })
+                        .y(function(d) { return scope.y(d.count); });
 
                     var EventData = [];
                     var endTime = 0;
@@ -422,10 +436,10 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
 
 
-                            x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
-                            y.domain([0,maxCount]);
-                            xAxis = d3.svg.axis().scale(x).orient("bottom"),
-                                yAxis = d3.svg.axis().scale(y).orient("left");
+                            scope.x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
+                            scope.y.domain([0,maxCount]);
+                            xAxis = d3.svg.axis().scale( scope.x).orient("bottom"),
+                                yAxis = d3.svg.axis().scale(scope.y).orient("left");
 
 
 
@@ -469,8 +483,9 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                             .select("rect")
                             .attr("width", width)
                             .attr("height", height);
-                        x = d3.time.scale().range([0, width]),
-                            y = d3.scale.linear().range([height, 0]);
+                        scope.x = d3.time.scale().range([0, width]),
+                            scope.y = d3.scale.linear().range([height, 0]);
+                        scope.x.domain([new Date(startTime),new Date(endTime)]);
 
                         renderTimeGraph(EventData);
                     };
@@ -489,7 +504,14 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         {
                             return alert("Need brush the timeline");
                         }
-                        if(timerAinmation)  clearTimeout(timerAinmation), speedAnimation = 1000;
+                        if(scope.isPlay){
+                            if(timerAinmation)clearTimeout(timerAinmation), speedAnimation = 1000;
+                            scope.changePlayState();
+                            return ;
+                        }
+                        else{
+                            scope.changePlayState();
+                        }
                         var z = [];
                         //z[0] = new Date(startTime);
                         var brushBackRectWidth = context.select(".brush").select(".background").attr("width");
@@ -497,20 +519,20 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
                         var x_w = +brushRect.attr("x");
                         var widthRect = +brushRect.attr("width");
                         var x_e = x_w + widthRect;
-                        z[0] = x.invert(x_w);
-                        z[1] = x.invert(x_e);
+                        z[0] = scope.x.invert(x_w);
+                        z[1] = scope.x.invert(x_e);
                         // brush.extent(z);
 
 
                         var player = function(){
                             z[0].setDate(z[0].getDate() + 1);
                             z[1].setDate(z[1].getDate() + 1);
-                            var xOffset = x(z[0]);
+                            var xOffset = scope.x(z[0]);
                             var xEOffset = xOffset + widthRect;
                             if(brushBackRectWidth < xEOffset){
                                 xOffset = 0;
-                                z[0] = x.invert(xOffset);
-                                z[1] = x.invert(widthRect);
+                                z[0] = scope.x.invert(xOffset);
+                                z[1] = scope.x.invert(widthRect);
                             }
                             brushRect.attr("x",xOffset);
                             timerAinmation = setTimeout(player,speedAnimation);
@@ -519,8 +541,11 @@ stavrDirts.directive('myLineChart', ['$interval','ActiveDataFactory', function($
 
                     };
 
-                    scope.stop = function(){
-                         clearTimeout(timerAinmation);
+                    scope.pause = function(){
+                        if(scope.isPlay){
+                            if(timerAinmation)clearTimeout(timerAinmation), speedAnimation = 1000;
+                            scope.changePlayState();
+                        }
                     };
 
                     scope.forward = function(){
@@ -630,7 +655,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
 
                 var svg = d3.select(boxBody)
                     .append('svg')
-                    .attr('width', width)
+                    .attr('width', width-20)
                     .attr('height', height);
 
                 var node, link,nodes_labels;
@@ -758,7 +783,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     if(width == newWidth) return;
                     width = newWidth;
                     height = width * 0.5;
-                    svg.attr('width', newWidth)
+                    svg.attr('width', newWidth-20)
                         .attr('height', height);
 
                     force.size([width,height]);

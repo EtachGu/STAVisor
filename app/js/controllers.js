@@ -101,6 +101,32 @@ stavrCtrl.controller('View1Ctrl',['$scope','$routeParams','ActiveDataFactory',fu
 
 }]);
 stavrCtrl.controller('View2Ctrl',['$scope','$routeParams',function($scope,$routeParams){
+    $(".connectedSortable").sortable({
+        placeholder: "sort-highlight",
+        connectWith: ".connectedSortable",
+        handle: ".box-header, .nav-tabs",
+        forcePlaceholderSize: true,
+        zIndex: 999999
+    });
+    $(".connectedSortable .box-header, .connectedSortable .nav-tabs-custom").css("cursor", "move");
+
+    // control the update of views
+
+    $scope.isSelectedDataTable = false;
+    $scope.isUpdateMapView = false;
+    $scope.isUpdateRelationView = false;
+    $scope.isUpdateTimeView = false;
+    $scope.isUpdateStackView = false;
+
+    // response the click on tableView
+    // response the click on tableView
+    $scope.tableViewClick = function () {
+        if($scope.selectTableView){
+            var selectedData = $scope.selectTableView.rows('.active').data();
+            if(selectedData.length>0)MapViewerSever.selectTrajectoryFeatures(selectedData[0][0]);
+            else MapViewerSever.selectTrajectoryFeatures("");
+        }
+    };
 
 }]);
 
