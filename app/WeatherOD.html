@@ -1,0 +1,50 @@
+
+<div id="body">
+<div class="row">
+   <div class="col-md-6">
+       <div class="box box-success">
+           <div class="box-header with-border">
+               <h3 class="box-title">MapView</h3>
+               <div class="box-tools pull-right">
+                   <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+               </div>
+           </div><!-- /.box-header -->
+           <div class="box-body no-padding">
+               <div class="pad">
+                   <!-- Map will be created here -->
+                   <div id="map" my-map-chart  title="{{isUpdateMapView}}"></div>
+               </div>
+           </div><!-- /.box-body -->
+       </div><!-- /.box -->
+       <div class="box box-primary" my-line-chart="TimeView" title="{{isUpdateTimeView}}" ></div>
+   </div>
+    <div class="col-md-6">
+
+        <div id="charts">
+            <div id="hour-chart" class="chart">
+                <div class="title">Time of Day</div>
+            </div>
+            <div id="delay-chart" class="chart">
+                <div class="title">Temperature(C)</div>
+            </div>
+            <div id="distance-chart" class="chart">
+                <div class="title">Relative Humidity (%rh)</div>
+            </div>
+            <div id="date-chart" class="chart">
+                <div class="title">Date</div>
+            </div>
+        </div>
+        <aside id="totals"><span id="active">-</span> of <span id="total">-</span> flights selected.</aside>
+
+        <div id="lists">
+            <div id="flight-list" class="list"></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</div>
+<script src="lib/CrossFilter/crossfilter.v1.min.js"></script>
+

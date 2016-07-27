@@ -39,7 +39,8 @@ stavrApp.config(['$routeProvider',
         controller:'InfoTableCtrl'
       }).
       when('/CrossFilter',{
-          templateUrl: '../CrossFilter.html',
+          //templateUrl: '../CrossFilter.html',
+          templateUrl: '../WeatherOD.html',
           controller:'CrossFilterCtrl',
           css:'css/crossFilter.css'
       }).
