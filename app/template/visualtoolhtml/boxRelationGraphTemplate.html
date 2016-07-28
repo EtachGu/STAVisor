@@ -7,6 +7,9 @@
                 <li><a ng-click="toggleForceTool()">control tool</a></li>
                 <li><a ng-click="resetForceTool()">reset</a></li>
                 <li class="divider"></li>
+                <li><a ng-click="toggleMatrixGraph()">Matrix Graph</a></li>
+                <li><a ng-click="toggleNLGraph()">Force Graph</a></li>
+                <li class="divider"></li>
                 <li><a href="">refresh</a></li>
             </ul>
         </div>
@@ -41,6 +44,7 @@
             </div>
         </div>
     </div>
-
+    <div id="matrixGraph" style="display:{{isShowMatrixGraph}}"></div>
+    <div id="nodeLinkGraph" style="display:{{isShowNLGraph}}"></div>
 
 </div>

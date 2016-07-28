@@ -16,6 +16,7 @@
                         <li class="active"><a href="#events" target="_self" data-toggle="tab">Events</a></li>
                         <li><a href="#maplayers" target="_self" data-toggle="tab">Map</a></li>
                         <li><a href="#time" target="_self"  data-toggle="tab">Time</a></li>
+                        <li><a href="#Relation" target="_self"  data-toggle="tab">Relations</a></li>
                     </ul>
                     <div class="tab-content">
                         <div class="active tab-pane" id="events">
@@ -153,6 +154,38 @@
                                 <button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>
                             </div>
                         </div><!-- /.tab-pane -->
+                        <div class="tab-pane" id="Relation">
+                            <div style="position: relative; height: 300px;">
+                                <div class="form-group">
+                                    <label for="SpatialDis">Spatial Distance</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-flag"></i>
+                                        </div>
+                                        <input id="SpatialDis" type="text" class="form-control" placeholder="100 m" value="{{spatialDistance}}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="TempDis">Temporal Distance</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-clock-o"></i>
+                                        </div>
+                                        <select id="TempDis" class="form-control">
+                                            <option>1 minute</option>
+                                            <option>30 minute</option>
+                                            <option>1 hour</option>
+                                            <option>1 day</option>
+                                            <option>1 week</option>
+                                            <option>1 month</option>
+                                            <option>1 year</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" ng-click="executeRelation()">Execute</button>
+                                </div>
+                            </div>
+                        </div><!-- /.tab-pane -->
+
                     </div><!-- /.tab-content -->
                 </div><!-- /.nav-tabs-custom -->
 

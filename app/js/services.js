@@ -54,11 +54,12 @@ stavrServices.factory('MapViewerSever', function () {
                     //     params:{'LAYERS':'ne:ne'},
                     //     serverType:'geoserver'})
                     //source: new ol.source.CartDB()
+                    title:'toner-hybrid',
+                    visible: true,
                     source: new ol.source.Stamen({
                         //layer: 'terrain-background'
                         // layer: 'terrain'
                         layer: 'toner-hybrid'
-
                     }),
                     // source: new ol.source.MapQuest({layer: 'osm'}),
                      opacity:0.3
@@ -105,8 +106,7 @@ stavrServices.factory('MapViewerSever', function () {
 
 
 
-                })
-                //         ,
+                }),
                 //        //        导入GeoJson文件数据
                 //       new ol.layer.Vector({
                 //         source: new ol.source.Vector({
@@ -116,6 +116,47 @@ stavrServices.factory('MapViewerSever', function () {
                 // //              设置点的格式"MultiPoint",
                 // //              style:
                 //       })
+                new ol.layer.Tile({
+                    title:'MapQuest osm',
+                    visible: false,
+                    source: new ol.source.MapQuest({layer: 'osm'}),
+                    opacity:0.3
+                }),
+                new ol.layer.Tile({
+                    //
+                    // source: new ol.source.OSM({opaque:'false'})
+                    //source: new ol.source.Raster()
+                    // source: new ol.source.ImageWMS({
+                    //     url:'http://demo.opengeo.org/geoserver/wms',
+                    //     params:{'LAYERS':'ne:ne'},
+                    //     serverType:'geoserver'})
+                    //source: new ol.source.CartDB()
+                    title:'MapQuest sat',
+                    visible: false,
+                    source: new ol.source.MapQuest({layer: 'sat'}),
+                    opacity:0.3
+                }),
+                new ol.layer.Tile({
+                    // source: new ol.source.ImageWMS({
+                    //     url:'http://demo.opengeo.org/geoserver/wms',
+                    //     params:{'LAYERS':'ne:ne'},
+                    //     serverType:'geoserver'})
+                    //
+                    title:'OSM',
+                    visible: false,
+                    source: new ol.source.OSM({opaque:'false'}),
+                    opacity:0.3
+                }),
+                new ol.layer.Tile({
+                    title:'ImageWMS',
+                    visible: false,
+                    source: new ol.source.ImageWMS({
+                            url:'http://demo.opengeo.org/geoserver/wms',
+                            params:{'LAYERS':'ne:ne'},
+                            serverType:'geoserver'}),
+                    opacity:0.3
+                })
+
             ],
             target: 'map',
             //            controls: ol.control.defaults({
@@ -134,6 +175,13 @@ stavrServices.factory('MapViewerSever', function () {
 
             })
         });
+
+    // add layer switcher
+    var layerSwitcher = new ol.control.LayerSwitcher({
+        tipLabel:'Layer'
+    });
+    map.addControl(layerSwitcher);
+
 
 
 
@@ -182,6 +230,7 @@ stavrServices.factory('MapViewerSever', function () {
     // trajectory layers
     var trajectoryFeatures = new ol.Collection();
     var trajectoryLayer = new ol.layer.Vector({
+        title:'trajectoryLayer',
         source: new ol.source.Vector({features: trajectoryFeatures})
     });
     trajectoryLayer.setMap(map);

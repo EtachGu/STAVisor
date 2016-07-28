@@ -56,3 +56,9 @@ svg {
     fill-opacity: .125;
     shape-rendering: crispEdges;
 }
+
+
+
+text.active {
+    fill: red;
+}
