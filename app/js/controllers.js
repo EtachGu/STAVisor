@@ -2333,10 +2333,10 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
     };
 
     $scope.selectedStartDate = "2013-01-01";
-    $scope.selectedEndDate = "2013-09-30";
+    $scope.selectedEndDate = "2013-02-28";
 
-    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment("2013-01-01"),
-        endDate: moment('2013-09-30')}, function (start, end) {
+    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment($scope.selectedStartDate),
+        endDate: moment($scope.selectedEndDate)}, function (start, end) {
         // window.alert("You chose: " + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
 
         $scope.selectedStartDate = start.format('YYYY-MM-DD');
@@ -2400,7 +2400,15 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
 
 
     $scope.ClearResult = function () {
-        $rootScope.$broadcast('removeTrajectory');
+
+        MapViewerSever.trajectoryFeatures.clear();
+        ActiveDataFactory.clearActiveData();
+
+        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        $scope.isUpdateStackView = !$scope.isUpdateStackView;
     };
 
 

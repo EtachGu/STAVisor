@@ -302,16 +302,44 @@ stavrServices.factory('MapViewerSever', function () {
         service.trajectoryFeatures.getArray().forEach(function (feature) {
             var geometryCoords = feature.getGeometry().getCoordinates();
             var times = feature.getGeometry().get("times");
-            var index = times.map(function(e){
-                var t = +e;
-                var min = timeRange[0];
-                var max = timeRange[1];
-                if(t >= min && t <= max) return true;
-                else return false;
-            });
-            var selectedCoords= geometryCoords.map(function(e,i){
-                if(index[i]) return e;
-            }).filter(function(e){return e!== undefined});
+            var type  = feature.get("type");
+            var selectedCoords = [];
+            if(type=="MultiLineString"){
+                for(var k=0;k<times.length;k++){
+                    var index = times[k].map(function(e){
+                        var t = +e;
+                        var min = timeRange[0];
+                        var max = timeRange[1];
+                        if(t >= min && t <= max) return true;
+                        else return false;
+                    });
+                    if(selectedCoords.length==0){
+                        selectedCoords = geometryCoords[k].map(function(e,i){
+                            if(index[i]) return e;
+                        }).filter(function(e){return e!== undefined})
+                    }
+                    else{
+                        selectedCoords.concat(geometryCoords[k].map(function(e,i){
+                            if(index[i]) return e;
+                        }).filter(function(e){return e!== undefined}));
+                    }
+
+                }
+
+            }
+            else{
+                var index = times.map(function(e){
+                    var t = +e;
+                    var min = timeRange[0];
+                    var max = timeRange[1];
+                    if(t >= min && t <= max) return true;
+                    else return false;
+                });
+                selectedCoords= geometryCoords.map(function(e,i){
+                    if(index[i]) return e;
+                }).filter(function(e){return e!== undefined});
+            }
+
 
 
 
@@ -321,6 +349,10 @@ stavrServices.factory('MapViewerSever', function () {
             alpColor[3] = 0.1;
             // feature.getStyle().getImage().getFill().setColor(alpColor);
             feature.setStyle( new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: alpColor,
+                    width: 2
+                }),
                 image: new ol.style.Circle({
                     radius: 7,
                     fill: new ol.style.Fill({
@@ -331,18 +363,40 @@ stavrServices.factory('MapViewerSever', function () {
 
             var highAlpColor = ol.color.asArray(hexcolor);
             highAlpColor = highAlpColor.slice();
-            highAlpColor[3] = 0.9;
+            highAlpColor[3] = 0.6;
             var newFeature = new ol.Feature({
-                geometry:new ol.geom.MultiPoint(selectedCoords)
+                //geometry:new ol.geom.MultiPoint(selectedCoords)
+                geometry:new ol.geom.LineString(selectedCoords)
             });
-            newFeature.setStyle(new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({
-                        color: highAlpColor
+
+            var styles = [
+                // new ol.style.Style({
+                //     image: new ol.style.Circle({
+                //         radius: 7,
+                //         fill: new ol.style.Fill({
+                //             color: highAlpColor
+                //         })
+                //     })})
+            ];
+
+            newFeature.getGeometry().forEachSegment(function(start, end) {
+                var dx = end[0] - start[0];
+                var dy = end[1] - start[1];
+                var rotation = Math.atan2(dy, dx);
+                // arrows
+                styles.push(new ol.style.Style({
+                    geometry: new ol.geom.Point(end),
+                    image: new ol.style.Icon(/** @type {olx.style.IconOptions} */{
+                        color:highAlpColor,
+                        src: 'img/arrow.png',
+                        anchor: [0.75, 0.5],
+                        rotateWithView: false,
+                        rotation: -rotation
                     })
-                })
-            }));
+                }));
+            });
+
+            newFeature.setStyle(styles);
             highllightSource.addFeature(newFeature);
 
         });
@@ -572,6 +626,13 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
     service.isMapUpdate = false;
 
+
+
+    service.clearActiveData = function () {
+        service.selectData = null;
+        
+    };
+
     service.callDatabase = function () {
 
         var deferred = $q.defer();
@@ -612,7 +673,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
         var tStartTime = service.startDate;
         var tEndTime = service.endDate;
-        var url = "http://localhost:8080/DataVisualor/ServletJson?"+
+        var url = "http://localhost:8080/DataVisualor/ServletJson2?"+
             "TID=&"+
             "TOwner=&"+
             "TNumber="+carNumber+"&"+

@@ -153,7 +153,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                         var trajectoryFeatures = MapViewerSever.trajectoryFeatures;
 
                         var selectData = ActiveDataFactory.getSelectData();
-                        var typeFeature = "MultiPoint";
+                        var typeFeature = "MultiLineString";
                         var d3Color = d3.scale.category10();
                         var featureSet = [];
 
@@ -166,10 +166,10 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                             var feature = new ol.Feature({
                                 style:   new ol.style.Style({
-                                    // stroke: new ol.style.Stroke({
-                                    //     color: '#ffcc00',
-                                    //     width: 2
-                                    // }),
+                                    stroke: new ol.style.Stroke({
+                                        color: featureObj.colorLine,
+                                        width: 2
+                                    }),
                                     // fill: new ol.style.Fill({
                                     //     color: featureObj.colorLine
                                     // }),
@@ -182,8 +182,12 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                 })
                             });
 
+                            var alpColor = ol.color.asArray(featureObj.colorLine);
+                            alpColor = alpColor.slice();
+                            alpColor[3] = 0.4;
+
                             feature.set('name',featureObj.carNumber);
-                            feature.set('color',featureObj.colorLine);
+                            feature.set('color',alpColor);
                             feature.set('type',typeFeature);
                             feature.set('date',"2013-3-28");
 
@@ -196,13 +200,27 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                     var trajectoryCoords =data.geometry.coordinates;
                                     var trajectoryTimes = data.geometry.times;
                                     var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
-                                    trajectoryCoords.forEach(function (coord) {
-                                        var c = transformFn(coord, undefined, coord.length);
-                                        coord[0] = c[0];
-                                        coord[1] = c[1];
-                                    });
+
+                                    if("MultiLineString"==typeFeature){
+                                        for(var i=0;i<trajectoryCoords.length;i++){
+                                            trajectoryCoords[i].forEach(function (coord) {
+                                                var c = transformFn(coord, undefined, coord.length);
+                                                coord[0] = c[0];
+                                                coord[1] = c[1];
+                                            });
+                                        }
+                                    }else{
+                                        trajectoryCoords.forEach(function (coord) {
+                                            var c = transformFn(coord, undefined, coord.length);
+                                            coord[0] = c[0];
+                                            coord[1] = c[1];
+                                        });
+                                    }
+
                                     var features = MapViewerSever.trajectoryFeatures.getArray();
                                     var featureCurrent = features.filter(function(f){ return f.get('name')==obj.carNumber});
+
+
 
 
                                     function geomCreator(type,coords) {
@@ -225,10 +243,10 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                     featureCurrent[0].setGeometry(geoM);
                                     var color = featureCurrent[0].get("color");
                                     featureCurrent[0].setStyle( new ol.style.Style({
-                                        // stroke: new ol.style.Stroke({
-                                        //     color: '#ffcc00',
-                                        //     width: 2
-                                        // }),
+                                        stroke: new ol.style.Stroke({
+                                            color: color,
+                                            width: 2
+                                        }),
                                         // fill: new ol.style.Fill({
                                         //     color: color
                                         // }),
