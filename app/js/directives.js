@@ -278,12 +278,181 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
     }
 }]);
 
-stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFactory', function($interval,MapViewerSever,ActiveDataFactory) {
+stavrDirts.directive('myDayHourHeatmap',['$compile',function($compile){
+    return {
+        restrict : 'A',
+        transclude: false,
+        templateUrl:'template/visualtoolhtml/dayhourheatmap.html',
+        controller:function($scope,$element,$transclude,$http){
+
+        },
+        link:{
+            pre:function(tElement,tAttrs,transclude){},
+            post:function(scope,iElement,iAttrs,controller){
+                //UI configuration
+                var itemSize = 15,
+                    cellSize = itemSize-1,
+                    width =  iElement.width(),
+                    margin = {top:20,right:20,bottom:20,left:50};
+
+                //formats
+                var hourFormat = d3.time.format('%H'),
+                    dayFormat = d3.time.format('%j'),
+                    timeFormat = d3.time.format('%Y-%m-%dT%X'),
+                    monthDayFormat = d3.time.format('%m.%d');
+
+                //data vars for rendering
+                var dateExtent = null,
+                    data = null,
+                    dayOffset = 0,
+                    colorCalibration = ['#f6faaa','#FEE08B','#FDAE61','#F46D43','#D53E4F','#9E0142'],
+                    dailyValueExtent = {};
+
+                //axises and scales
+                var axisHeight =0,
+                    axisWidth = itemSize*24,
+                    yAxisScale = d3.time.scale(),
+                    yAxis = d3.svg.axis()
+                        .orient('left')
+                        .ticks(d3.time.days,3)
+                        .tickFormat(monthDayFormat),
+                    xAxisScale = d3.scale.linear()
+                        .range([0,axisWidth])
+                        .domain([0,24]),
+                    xAxis = d3.svg.axis()
+                        .orient('top')
+                        .ticks(5)
+                        .tickFormat(d3.format('02d'))
+                        .scale(xAxisScale);
+
+                initCalibration();
+
+                var svg = d3.select('[role="heatmap"]');
+                var heatmap = svg
+                    .attr('width',width)
+                    // .attr('height',height)
+                    .append('g')
+                    .attr('width',width-margin.left-margin.right)
+                    // .attr('height',height-margin.top-margin.bottom)
+                    .attr('transform','translate('+margin.left+','+margin.top+')');
+                var rect = null;
+
+                d3.json('mbar/pm25.json',function(err,data){
+                    data = data.data;
+                    data.forEach(function(valueObj){
+                        valueObj['date'] = timeFormat.parse(valueObj['timestamp']);
+                        var day = valueObj['day'] = monthDayFormat(valueObj['date']);
+
+                        var dayData = dailyValueExtent[day] = (dailyValueExtent[day] || [1000,-1]);
+                        var pmValue = valueObj['value']['PM2.5'];
+                        dayData[0] = d3.min([dayData[0],pmValue]);
+                        dayData[1] = d3.max([dayData[1],pmValue]);
+                    });
+
+                    dateExtent = d3.extent(data,function(d){
+                        return d.date;
+                    });
+
+                    axisHeight = itemSize*(dayFormat(dateExtent[1])-dayFormat(dateExtent[0])+1);
+
+                    svg.attr('height',axisHeight+margin.top+margin.bottom);
+
+                    //render axises
+                    yAxis.scale(yAxisScale.range([0,axisHeight]).domain([dateExtent[0],dateExtent[1]]));
+                    svg.append('g')
+                        .attr('transform','translate('+margin.left+','+margin.top+')')
+                        .attr('class','x axis')
+                        .call(xAxis)
+                        .append('text')
+                        .text('time')
+                        .attr('transform','translate('+axisWidth+',-10)');
+
+                    svg.append('g')
+                        .attr('transform','translate('+margin.left+','+margin.top+')')
+                        .attr('class','y axis')
+                        .call(yAxis)
+                        .append('text')
+                        .text('date')
+                        .attr('transform','translate(-'+margin.left +','+axisHeight+')');
+
+                    //render heatmap rects
+                    dayOffset = dayFormat(dateExtent[0]);
+                    rect = heatmap.selectAll('rect')
+                        .data(data)
+                        .enter().append('rect')
+                        .attr('width',cellSize)
+                        .attr('height',cellSize)
+                        .attr('y',function(d){
+                            return itemSize*(dayFormat(d.date)-dayOffset);
+                        })
+                        .attr('x',function(d){
+                            return hourFormat(d.date)*itemSize;
+                        })
+                        .attr('fill','#ffffff');
+
+                    rect.filter(function(d){ return d.value['PM2.5']>0;})
+                        .append('title')
+                        .text(function(d){
+                            return monthDayFormat(d.date)+' '+d.value['PM2.5'];
+                        });
+
+                    renderColor();
+                });
+
+                function initCalibration(){
+                    d3.select('[role="calibration"] [role="example"]').select('svg')
+                        .selectAll('rect').data(colorCalibration).enter()
+                        .append('rect')
+                        .attr('width',cellSize)
+                        .attr('height',cellSize)
+                        .attr('x',function(d,i){
+                            return i*itemSize;
+                        })
+                        .attr('fill',function(d){
+                            return d;
+                        });
+
+                    //bind click event
+                    d3.selectAll('[role="calibration"] [name="displayType"]').on('click',function(){
+                        renderColor();
+                    });
+                }
+
+                function renderColor(){
+                    var renderByCount =false;
+
+                    rect
+                        .filter(function(d){
+                            return (d.value['PM2.5']>=0);
+                        })
+                        .transition()
+                        .delay(function(d){
+                            return (dayFormat(d.date)-dayOffset)*15;
+                        })
+                        .duration(500)
+                        .attrTween('fill',function(d,i,a){
+                            //choose color dynamicly
+                            var colorIndex = d3.scale.quantize()
+                                .range([0,1,2,3,4,5])
+                                .domain((renderByCount?[0,500]:dailyValueExtent[d.day]));
+
+                            return d3.interpolate(a,colorCalibration[colorIndex(d.value['PM2.5'])]);
+                        });
+                }
+
+                //extend frame height in `http://bl.ocks.org/`
+                d3.select(self.frameElement).style("height", "600px");
+            }
+        }
+    }
+}]);
+
+stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFactory','$compile', function($interval,MapViewerSever,ActiveDataFactory,$compile) {
     return {
         restrict : 'A',
         transclude: false,
         templateUrl:'template/visualtoolhtml/boxTimeLineTemplate.html',
-        controller: function ($scope,$element,$transclude,$http) {
+        controller: function ($scope,$element,$transclude,$http,$compile) {
 
             var selectedData = ActiveDataFactory.getSelectData();
             var dateRange = ActiveDataFactory.getDateRange();
@@ -301,9 +470,30 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                 }
 
             };
-            
-            
-            
+
+            $scope.isShowTimeLine = "block";
+            $scope.isShowCalendar = "none";
+            $scope.isShowTimeCycle = "none";
+            $scope.timeViewRadiosClick = function(){
+                if($element.find('#radio1')[0].checked) {
+                    $scope.isShowTimeLine = "block";
+                    $scope.isShowCalendar = "none";
+                    $scope.isShowTimeCycle = "none";
+                }
+                if($element.find('#radio2')[0].checked) {
+                    $scope.isShowTimeLine = "none";
+                    $scope.isShowCalendar = "block";
+                    $scope.isShowTimeCycle = "none";
+                    // if(!$element.find('#myDayHourHeatMap')[0]){
+                    //     $element.find('#calendarChart')[0].append($compile("<div my-day-hour-heatmap></div>")($scope));
+                    // }
+                }
+                if($element.find('#radio3')[0].checked) {
+                    $scope.isShowTimeLine = "none";
+                    $scope.isShowCalendar = "none";
+                    $scope.isShowTimeCycle = "block";
+                }
+            };
 
         },
         link:{
@@ -404,6 +594,7 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                         }
                     }
 
+
                     iAttrs.$observe('title',function () {
 
                         var month = 30 * 24 * 60 * 60 * 1000;
@@ -431,12 +622,12 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                                     if (time > endTime) endTime = time;
                                     event.dates.push(date);
                                     var dateS   = date.toDateString();
-                                    var itemDate = dataCount.find(function(e){ return e.date.toDateString() == dateS});
+                                    var itemDate = dataCount.find(function(e){ return e.date == date});
                                     if(itemDate){
                                         itemDate.count +=1;
                                     }
                                     else{
-                                        var bar = { date:new Date(dateS),count:1};
+                                        var bar = { date:date,count:1};
                                         dataCount.push(bar);
                                     }
                                     if(itemDate && (itemDate.count > maxCount)) maxCount = itemDate.count ;
@@ -501,9 +692,10 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                     });
 
 
+
                     var resizeView = function(){
                         var newWidth = iElement.width() * 0.65 - margin.left - margin.right;
-                        if(width == newWidth) return;
+                        if(newWidth<=0 || width == newWidth) return;
                         width = newWidth;
                         height = parentHeight - margin.top - margin.bottom;
                         svg.attr("width",  iElement.width() * 0.65 );
@@ -525,9 +717,9 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                     var timer;
                     var updateScene = function () {
                         resizeView();
-                        timer = setTimeout(updateScene, 1000);
+                        // timer = setTimeout(updateScene, 1000);
                     };
-                    updateScene();
+                    //updateScene();
 
                     //Animation button control
                     var timerAinmation = null, speedAnimation = 100;
@@ -557,16 +749,18 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
 
 
                         var player = function(){
-                            z[0].setDate(z[0].getDate() + 1);
-                            z[1].setDate(z[1].getDate() + 1);
-                            updateSelectedPoints(z);
-                            var xOffset = scope.x(z[0]);
+                            // z[0].setDate(z[0].getDate() + 1);
+                            // z[1].setDate(z[1].getDate() + 1);
+                            var xOffset = x_w++;// scope.x(z[0]);
                             var xEOffset = xOffset + widthRect;
                             if(brushBackRectWidth < xEOffset){
+                                x_w = 0;
                                 xOffset = 0;
-                                z[0] = scope.x.invert(xOffset);
-                                z[1] = scope.x.invert(widthRect);
+                                xEOffset = xOffset + widthRect;
                             }
+                            z[0] = scope.x.invert(xOffset);
+                            z[1] = scope.x.invert(xEOffset);
+                            updateSelectedPoints(z);
                             brushRect.attr("x",xOffset);
                             timerAinmation = setTimeout(player,speedAnimation);
                         };
@@ -846,7 +1040,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
 
                 var resizeView = function(){
                     var newWidth = iElement.width();
-                    if(width == newWidth) return;
+                    if(newWidth<=0 || width == newWidth) return;
                     width = newWidth;
                     height = width * 0.5;
                     svg.attr('width', newWidth-20)
@@ -1729,6 +1923,8 @@ stavrDirts.directive('mySelectedTable',['$rootScope','ActiveDataFactory',functio
         }
     }
 }]);
+
+
 
 // stavrDirts.directive('mySideLayout',function () {
 //     return {

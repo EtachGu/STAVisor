@@ -27,10 +27,28 @@
                          </a>
                          <a class="btn btn-player" ng-click="forward()"><i class="fa  fa-forward"></i></a>
                      </span>
+                     <div ng-click="timeViewRadiosClick()">
+                         <label>
+                           <input type="radio" name="RadioOptions" id="radio1" value="option1" checked> line
+                         </label>
+                         <label>
+                           <input type="radio" name="RadioOptions" id="radio2" value="option2"> calendar
+                         </label>
+                         <label>
+                           <input type="radio" name="RadioOptions" id="radio3" value="option3"> cycle
+                         </label>
+                     </div>
                 </div>
             </div>
             <div class="col-md-9 col-sm-9">
-                <span id="timaLineBar"></span>
+                <span id="timaLineBar" style="display:{{isShowTimeLine}}"></span>
+
+                <!--calendar-->
+                <div id="calendarChart" my-day-hour-heatmap style="display:{{isShowCalendar}}">
+                </div>
+
+                <!--cycle-->
+                <span id="timeCycle" style="display:{{isShowTimeCycle}}"></span>
             </div>
         </div>
     </div>

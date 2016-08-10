@@ -379,6 +379,7 @@ stavrServices.factory('MapViewerSever', function () {
                 //     })})
             ];
 
+
             newFeature.getGeometry().forEachSegment(function(start, end) {
                 var dx = end[0] - start[0];
                 var dy = end[1] - start[1];
@@ -386,12 +387,20 @@ stavrServices.factory('MapViewerSever', function () {
                 // arrows
                 styles.push(new ol.style.Style({
                     geometry: new ol.geom.Point(end),
-                    image: new ol.style.Icon(/** @type {olx.style.IconOptions} */{
-                        color:highAlpColor,
-                        src: 'img/arrow.png',
-                        anchor: [0.75, 0.5],
-                        rotateWithView: false,
-                        rotation: -rotation
+                    // image: new ol.style.Icon(/** @type {olx.style.IconOptions} */{
+                    //     color:highAlpColor,
+                    //     src: 'img/arrow.png',
+                    //     anchor: [0.75, 0.5],
+                    //     rotateWithView: false,
+                    //     rotation: -rotation
+                    // })
+                    image: new ol.style.RegularShape({
+                        fill: new ol.style.Fill({color: highAlpColor}),
+                        stroke: new ol.style.Stroke({color: 'black', width: 2}),
+                        points: 3,
+                        radius: 10,
+                        rotation: -rotation,
+                        angle:Math.PI / 2
                     })
                 }));
             });
