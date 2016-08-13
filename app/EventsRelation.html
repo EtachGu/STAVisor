@@ -41,7 +41,7 @@
                                         <div class="input-group-addon">
                                             <i class="fa fa-car"></i>
                                         </div>
-                                        <input type="text" class="form-control" id="TNumber" placeholder="鄂AXW753 or AllCar" value="{{selectedCars}}">
+                                        <input type="text" class="form-control" id="TNumber" placeholder="鄂AXW753 or AllCar" ng-model="selectedCars">
                                     <span class="input-group-btn">
                                         <button type="submit" name="search" id="search-btn" class="btn btn-flat" ng-click="showDataTable()"><i class="fa fa-search" ></i></button>
                                     </span>
@@ -162,7 +162,7 @@
                                         <div class="input-group-addon">
                                             <i class="fa fa-flag"></i>
                                         </div>
-                                        <input id="SpatialDis" type="text" class="form-control" placeholder="100 m" value="{{spatialDistance}}">
+                                        <input id="SpatialDis" type="text" class="form-control" placeholder="100 m" ng-model="spatialDistance">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -171,7 +171,7 @@
                                         <div class="input-group-addon">
                                             <i class="fa fa-clock-o"></i>
                                         </div>
-                                        <select id="TempDis" class="form-control">
+                                        <select id="TempDis" class="form-control" ng-model="tepmoralDistance">
                                             <option>1 minute</option>
                                             <option>30 minute</option>
                                             <option>1 hour</option>

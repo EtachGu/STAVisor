@@ -2412,6 +2412,22 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
     };
 
 
+    // relations execute
+    $scope.spatialDistance = 100;
+    $scope.tepmoralDistance = "1 hour";
+    $scope.executeRelation = function () {
+        console.log($scope.spatialDistance);
+        console.log($scope.tepmoralDistance);
+
+        ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
+
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        
+
+
+    };
+
+
 
 }]);
 

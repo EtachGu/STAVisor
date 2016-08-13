@@ -526,6 +526,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     service.endDate = "2013-12-12";
     service.dataObj = {};
     service.selectData = [];
+    service.spatialDistance = -1;
+    service.temporalDistance = "";
 
     var traTableJsonSevletUrl = 'http://localhost:8080/DataVisualor/TraTableJsonSevlet';
 
@@ -624,6 +626,14 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return carNumberStr
     };
 
+    /**
+     *  relation operation function ,  extract relation by spatial distance and temporal distance
+     */
+    // set relation parameter
+    service.setRelationParameter = function(distance,timeDelta){
+        service.spatialDistance = distance;
+        service.temporalDistance = timeDelta;
+    };
 
 
 
@@ -755,6 +765,49 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         }
         tableHTMLStr += "</tbody></table>";
         return tableHTMLStr
+    };
+
+    service.callRelationsData = function(){
+
+        var deferred = $q.defer();
+
+        if(!service.selectData)  return deferred.promise;
+
+        if(service.spatialDistance == "")  return deferred.promise;
+        if(service.temporalDistance == "")  return deferred.promise;
+
+        var spatialDis = +service.spatialDistance;
+        var temporalDis = +service.temporalDistance;
+
+        var carNumbers ="";
+        if(this.selectData.length){
+            carNumbers = this.selectData[0][0];
+            for(var i=1;i<this.selectData.length;i++){
+                    carNumbers += "," + this.selectData[i][0];
+            }
+        }
+
+        var tStartTime = service.startDate;
+        var tEndTime = service.endDate;
+
+        var url = "http://localhost:8080/DataVisualor/EventRelationServletJson?"+
+            "TID=&"+
+            "TOwner=&" +
+            "TNumber=" + carNumbers + "&" +
+            "TStartTime="+ tStartTime + "&" +
+            "TEndTime=" + tEndTime + "&" +
+            "DistanceThreshold=" + spatialDis + "&" +
+            "tDistanceThreshold=0";// + temporalDis;
+
+
+
+
+        $http.get(url,{cache:true}).success(function (data) {
+            deferred.resolve(data);
+        }).error(function () {
+            deferred.reject('There was an error');
+        });
+        return deferred.promise;
     };
 
     return service;
