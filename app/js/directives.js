@@ -271,6 +271,69 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
 
                     }
+                    ActiveDataFactory.callRelationsData().then(function(data){
+                        var nodes = data.nodes;
+
+                        var typeFeature = "MultiPoint";
+                        var d3Color = d3.scale.category10();
+                        var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                        for(var i=0;i<nodes.length;i++){
+                            var node = nodes[i];
+                            var coords = [];
+                            coords[0] = node.lon;
+                            coords[1] = node.lat;
+                            var c = transformFn(coords, undefined, coords.length);
+
+                            var color = d3Color(node.group);
+
+                            var feature = new ol.Feature({
+                                geometry: new ol.geom.Point(c),
+                                style:   new ol.style.Style({
+                                    stroke: new ol.style.Stroke({
+                                        color: color,
+                                        width: 2
+                                    }),
+                                    // fill: new ol.style.Fill({
+                                    //     color: featureObj.colorLine
+                                    // }),
+                                    image: new ol.style.Circle({
+                                        radius: 7,
+                                        fill: new ol.style.Fill({
+                                            color: color
+                                        })
+                                    })
+                                })
+                            });
+
+                            var alpColor = ol.color.asArray(color);
+                            alpColor = alpColor.slice();
+                            alpColor[3] = 0.5;
+
+                            // feature.set('name',featureObj.carNumber);
+                            feature.set('color',alpColor);
+                            feature.set('type',typeFeature);
+                            //feature.set('date',"2013-3-28");
+                            feature.setStyle(new ol.style.Style({
+                                image: new ol.style.Circle({
+                                    radius: 7,
+                                    // fill: new ol.style.Fill({
+                                    //     color: color
+                                    // }),
+                                   stroke: new ol.style.Stroke({
+                                    color: color,
+                                    width: 3
+                                    })
+                                })
+                           }));
+
+                            MapViewerSever.eventsFeatures.push(feature);
+
+                        }
+
+                    },function (data) {
+                        alert(data);
+                    });
+
                 });
                 
             }
@@ -278,6 +341,10 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
     }
 }]);
 
+
+/**
+ *  Time View group
+ */
 stavrDirts.directive('myDayHourHeatmap',['$compile',function($compile){
     return {
         restrict : 'A',
@@ -804,7 +871,11 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
         }
 }]);
 
-stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
+
+/**
+ *  Graph View group
+ */
+stavrDirts.directive('myGraphChart', ['$interval','ActiveDataFactory', function($interval,ActiveDataFactory) {
     return {
         restrict : 'A',
         transclude: false,
@@ -918,7 +989,11 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     .attr('width', width-20)
                     .attr('height', height);
 
+                // globe variable
                 var node, link,nodes_labels;
+                var matrix = [],
+                    nodes = [],
+                    nLength = 0;
 
                 var voronoi = d3.geom.voronoi()
                     .x(function(d) { return d.x; })
@@ -947,6 +1022,8 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                     .size([width,height]);
 
                 force.on('tick', function() {
+                    if(!node || !link) return;
+
                     node.attr('transform', function(d) { return 'translate('+d.x+','+d.y+')'; })
                         .attr('clip-path', function(d) { return 'url(#clip-'+d.index+')'; });
 
@@ -972,11 +1049,8 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .attr('d', function(d) { return 'M'+d.join(',')+'Z'; });
                 });
 
-                d3.json('mbar/relation2.json', function(err, data) {
-
-                    data.nodes.forEach(function(d, i) {
-                        d.id = i;
-                    });
+                // force graph render
+                var renderForceGraph = function(data){
 
                     link = svg.selectAll('.link')
                         .data( data.links )
@@ -990,7 +1064,6 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .attr('title', name)
                         .attr('class', 'node')
                         .call( force.drag );
-
 
 
                     node.append('circle')
@@ -1022,99 +1095,87 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                         .nodes( data.nodes )
                         .links( data.links )
                         .start();
-                });
-
-                var slidvalueChange = function (){
-                    //change force
-                    force.charge(iElement.find("#range_1")[0].value);
-                    force.friction(iElement.find("#range_2")[0].value);
-                    force.gravity(iElement.find("#range_3")[0].value);
-                    force.linkDistance(iElement.find("#range_4")[0].value);
-                    force.start();
                 };
-                iElement.find("#range_1").on("change",slidvalueChange);
-                iElement.find("#range_2").on("change",slidvalueChange);
-                iElement.find("#range_3").on("change",slidvalueChange);
-                iElement.find("#range_4").on("change",slidvalueChange);
-
-
-                var resizeView = function(){
-                    var newWidth = iElement.width();
-                    if(newWidth<=0 || width == newWidth) return;
-                    width = newWidth;
-                    height = width * 0.5;
-                    svg.attr('width', newWidth-20)
-                        .attr('height', height);
-
-                    force.size([width,height]);
-
-                    voronoi.clipExtent([[10, 10], [width-20, height-20]]);
-
-                    force.start();
-
-                    //update Matrix Graph
-                    iElement.find("#matrixGraph").find("svg").remove();
-                    renderMatrixGraph();
-                };
-
-                var timer;
-                var updateScene = function () {
-                    resizeView();
-                    timer = setTimeout(updateScene, 1000);
-                };
-                updateScene();
 
 
                 // matrix  graph
                 var matrixGraphDiv = iElement.find("#matrixGraph")[0];
 
-                function renderMatrixGraph(){
-                    var margin = {top: 80, right: 0, bottom: 10, left: 80};
-                    var widthMatrix =  width - margin.left - margin.right;
-                    var heightMatrix = width - margin.top;
+                var renderMatrixGraph = function(){
+                    if(nLength<=0) return ;
+                        var margin = {top: 15, right: 15, bottom: 15, left: 15};
+                        var widthMatrix =  width - margin.left - margin.right;
+                        var heightMatrix = width - margin.top-margin.bottom;
 
-                    var x = d3.scale.ordinal().rangeBands([0, widthMatrix]),
-                        z = d3.scale.linear().domain([0, 4]).clamp(true),
-                        c = d3.scale.category10().domain(d3.range(10));
 
-                    var matrixGraphSVG = d3.select(matrixGraphDiv).append("svg")
-                        .attr("width", width)
-                        .attr("height", width +  margin.bottom)
-                        // .style("margin-left", -margin.left + "px")
-                        .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                    d3.json("mbar/relation2.json", function(miserables) {
-                        var matrix = [],
-                            nodes = miserables.nodes,
-                            n = nodes.length;
+                        var x = d3.scale.ordinal().rangeBands([0, widthMatrix]),
+                            z = d3.scale.linear().domain([0, 4]).clamp(true),
+                            c = d3.scale.category10().domain(d3.range(10));
+                        var colorIndex = d3.scale.quantize().range([0,1,2,3,4,5,6,7,8]);    // weight of relation
 
-                        // Compute index per node.
-                        nodes.forEach(function(node, i) {
-                            node.index = i;
-                            node.count = 0;
-                            matrix[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+                    // Precompute the orders.
+                    var orders = {
+                        name: d3.range(nLength).sort(function(a, b) { return d3.ascending(nodes[a].name, nodes[b].name); }),
+                        count: d3.range(nLength).sort(function(a, b) { return nodes[b].count - nodes[a].count; }),
+                        group: d3.range(nLength).sort(function(a, b) { return nodes[b].group - nodes[a].group; })
+                    };
+
+                    // The default sort order.
+                    x.domain(orders.name);
+                    if(nLength>0)colorIndex.domain([nodes[0].count,nodes[nLength-1].count]);
+
+                    var  colorCalibration = [' #f7fcf5','#e5f5e0','#c7e9c0','#a1d99b','#74c476','#41ab5d','#238b45','#006d2c','#00441b'];
+
+                    function initCalibration(){
+                        var cellSize = 14,
+                            itemSize = 15,
+                            textWidth = 30,
+                            text2Width  = 40;
+
+                        var svgColorCal = d3.select(matrixGraphDiv).append("svg").attr('width',9*itemSize + textWidth + text2Width).attr('height',itemSize);
+
+                        svgColorCal.append("text")
+                            .attr("x",0)
+                            .attr("y",itemSize/2)
+                            .attr("dy", ".32em")
+                            .text("weak");
+                        svgColorCal.selectAll('rect').data(colorCalibration).enter()
+                            .append("rect")
+                            .attr('width',cellSize )
+                            .attr('height',cellSize )
+                            .attr("dy", ".32em")
+                            .attr('x',function(d,i){
+                                return i*itemSize+textWidth ;
+                            })
+                            .attr('fill',function(d){
+                                return d;
+                            });
+                        svgColorCal.append('text')
+                            .attr("dy", ".32em")
+                            .attr('x',9*itemSize+textWidth)
+                            .attr("y",itemSize/2)
+                            .text("strong");
+
+                        //bind click event
+                        d3.selectAll('[role="calibration"] [name="displayType"]').on('click',function(){
+                            renderColor();
                         });
+                    }
+                    d3.select(matrixGraphDiv).selectAll("svg").remove();
 
-                        // Convert links to matrix; count character occurrences.
-                        miserables.links.forEach(function(link) {
-                            matrix[link.source][link.target].z += link.value;
-                            matrix[link.target][link.source].z += link.value;
-                            matrix[link.source][link.source].z += link.value;
-                            matrix[link.target][link.target].z += link.value;
-                            nodes[link.source].count += link.value;
-                            nodes[link.target].count += link.value;
-                        });
+                    initCalibration();
 
-                        // Precompute the orders.
-                        var orders = {
-                            name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes[a].name, nodes[b].name); }),
-                            count: d3.range(n).sort(function(a, b) { return nodes[b].count - nodes[a].count; }),
-                            group: d3.range(n).sort(function(a, b) { return nodes[b].group - nodes[a].group; })
-                        };
+                        var matrixGraphSVG = d3.select(matrixGraphDiv).append("svg")
+                            .attr("width", width)
+                            .attr("height", width)
+                            // .style("margin-left", -margin.left + "px")
+                            .append("g")
+                            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-                        // The default sort order.
-                        x.domain(orders.name);
+
+
+
 
                         matrixGraphSVG.append("rect")
                             .attr("class", "background")
@@ -1138,6 +1199,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                             .attr("y", x.rangeBand() / 2)
                             .attr("dy", ".32em")
                             .attr("text-anchor", "end")
+                            .style("fill", function(d,i){return c(nodes[i].group)})
                             .text(function(d, i) { return nodes[i].name; });
 
                         var column = matrixGraphSVG.selectAll(".column")
@@ -1155,6 +1217,7 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                             .attr("y", x.rangeBand() / 2)
                             .attr("dy", ".32em")
                             .attr("text-anchor", "start")
+                            .style("fill", function(d,i){return c(nodes[i].group)})
                             .text(function(d, i) { return nodes[i].name; });
 
                         function row(row) {
@@ -1165,15 +1228,24 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                                 .attr("x", function(d) { return x(d.x); })
                                 .attr("width", x.rangeBand())
                                 .attr("height", x.rangeBand())
-                                .style("fill-opacity", function(d) { return z(d.z); })
-                                .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : null; })
+                                .style("fill-opacity", function(d) {
+                                    return nodes[d.x].group == nodes[d.y].group ?z(d.z) : 1 ;
+                                })
+                                .style("fill", function(d) {
+                                    // console.log("d is "+d + "  nodes[d.x].group is "+nodes[d.x].group+"  ;   nodes[d.y].group is "+nodes[d.y].group);
+                                    return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : colorCalibration[colorIndex(d.z)];
+                                })
                                 .on("mouseover", mouseover)
                                 .on("mouseout", mouseout);
                         }
 
                         function mouseover(p) {
-                            d3.selectAll(".row text").classed("active", function(d, i) { return i == p.y; });
-                            d3.selectAll(".column text").classed("active", function(d, i) { return i == p.x; });
+                            d3.selectAll(".row text").classed("active", function(d, i) {
+                                return i == p.y;
+                            });
+                            d3.selectAll(".column text").classed("active", function(d, i) {
+                                return i == p.x;
+                            });
                         }
 
                         function mouseout() {
@@ -1206,19 +1278,107 @@ stavrDirts.directive('myGraphChart', ['$interval', function($interval) {
                             order("group");
                             //d3.select("#order").property("selectedIndex", 2).node().focus();
                         }, 5000);
+                    }
+
+
+
+
+
+                iAttrs.$observe('title',function (){
+
+                    ActiveDataFactory.callRelationsData().then(function(data){
+
+
+                         matrix = [], nodes = data.nodes, nLength = nodes.length;
+
+                        data.nodes.forEach(function(d, i) {
+                            d.id = i;
+                            d.index = i;
+                            d.count = 0;
+                            matrix[i] = d3.range(nLength).map(function(j) { return {x: j, y: i, z: 0}; });
+                        });
+
+                        // Convert links to matrix; count character occurrences.
+                        data.links.forEach(function(link) {
+                            matrix[link.source][link.target].z += link.value;
+                            matrix[link.target][link.source].z += link.value;
+                            matrix[link.source][link.source].z += link.value;
+                            matrix[link.target][link.target].z += link.value;
+                            nodes[link.source].count += link.value;
+                            nodes[link.target].count += link.value;
+                        });
+
+
+                        renderForceGraph(data);
+
+                        renderMatrixGraph();
+
+                    },function (data) {
+                        alert(data);
                     });
+
+                    // d3.json('mbar/relation3.json', function(err, data) {
+                    //
+                    //
+                    // });
+
+                });
+
+                var slidvalueChange = function (){
+                    //change force
+                    force.charge(iElement.find("#range_1")[0].value);
+                    force.friction(iElement.find("#range_2")[0].value);
+                    force.gravity(iElement.find("#range_3")[0].value);
+                    force.linkDistance(iElement.find("#range_4")[0].value);
+                    force.start();
+                };
+                iElement.find("#range_1").on("change",slidvalueChange);
+                iElement.find("#range_2").on("change",slidvalueChange);
+                iElement.find("#range_3").on("change",slidvalueChange);
+                iElement.find("#range_4").on("change",slidvalueChange);
+
+
+
+
+
+
+
+
+
+
+
+                //add  resizeView  in the end
+                var resizeView = function(){
+                    var newWidth = iElement.width();
+                    if(newWidth<=0 || width == newWidth) return;
+                    width = newWidth;
+                    height = width * 0.5;
+                    svg.attr('width', newWidth-20)
+                        .attr('height', height);
+
+                    force.size([width,height]);
+
+                    voronoi.clipExtent([[10, 10], [width-20, height-20]]);
+
+                    force.start();
+
+                    //update Matrix Graph
+                    if(renderMatrixGraph)renderMatrixGraph();
                 };
 
-                renderMatrixGraph();
-
-                
-
-
+                var timer;
+                var updateScene = function () {
+                    resizeView();
+                    timer = setTimeout(updateScene, 1000);
+                };
+                updateScene();
 
             }
         }
     }
 }]);
+
+
 
 stavrDirts.directive('myBarChart', ['$interval', function($interval) {
     return {
@@ -1853,6 +2013,9 @@ stavrDirts.directive('myStackBarChart', ['$interval', function($interval) {
 }]);
 
 
+/**
+ *  Table View
+ */
 stavrDirts.directive('myTrajectoryLayerTable',['MapViewerSever',function (MapViewerSever) {
     return {
         restrict: 'A',

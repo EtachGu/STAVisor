@@ -236,6 +236,15 @@ stavrServices.factory('MapViewerSever', function () {
     trajectoryLayer.setMap(map);
 
 
+    // Events layers
+    var eventsFeatures = new ol.Collection();
+    var eventsLayers   =  new ol.layer.Vector({
+        title:'eventsLayer',
+        source: new ol.source.Vector({features: eventsFeatures})
+    });
+    eventsLayers.setMap(map);
+
+
 
     // map.addLayer(trajectoryLayer);
     // var draw;
@@ -263,6 +272,11 @@ stavrServices.factory('MapViewerSever', function () {
     service.trajectoryFeatures = trajectoryFeatures;
     service.trajectoryLayer = trajectoryLayer;
     service.selectedFeatures = selectedFeatures;
+
+
+    //Events bind to service
+    service.eventsFeatures = eventsFeatures;
+    service.eventsLayers = eventsLayers;
     
 
     service.removeAllLayers = function () {

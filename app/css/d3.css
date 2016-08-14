@@ -60,5 +60,8 @@ svg {
 
 
 text.active {
+    stroke:black;
+    stroke-width:1.5px;
+    font:15px sans-serif;
     fill: red;
 }

@@ -1028,7 +1028,7 @@ stavrCtrl.controller('TrajectoryLayerMICtrl',['$scope','$uibModalInstance','$roo
         var layerIntance ={};
         layerIntance.id = i;
         layerIntance.name = layer.get('name');
-        layerIntance.color = "color:"+ layer.get('color');
+        layerIntance.color = "color:rgb("+ layer.get('color')[0]+","+layer.get('color')[1]+","+layer.get('color')[2]+")";
         layerIntance.type = layer.get('type');
         layerIntance.date = layer.get('date');
         // layerIntance.number = layer.getSource().getFeatures().length;
@@ -2422,7 +2422,7 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
         ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
 
         $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
-        
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
 
 
     };
