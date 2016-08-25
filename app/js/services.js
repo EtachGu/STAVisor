@@ -441,12 +441,23 @@ stavrServices.factory('StopEventlayerSever',function () {
 
     return function(){
         number +=1;
-        var d3Color = d3.scale.category20();
+        var d3Color = d3.scale.category10();
+        var colorbar = ['#ffffcc',
+            '#ffeda0',
+            '#fed976',
+            '#feb24c',
+            '#fd8d3c',
+            '#fc4e2a',
+            '#e31a1c',
+            '#b10026',
+        ];
         var width = 80,
             height = 80,
             radius = Math.min(width, height) / 2,
             innerRadius = 0.3 * radius,
             idName = "marker_" + number;
+        
+        var colorAxis = d3.scale.quantize().range([0,1,2,3,4,5,6,7]);
 
         var pie = d3.layout.pie()
             .sort(null)
@@ -481,21 +492,31 @@ stavrServices.factory('StopEventlayerSever',function () {
 
         d3.csv('aster_data.csv', function(error, data) {
 
+            var maxScore =0,minScore=Number.MAX_VALUE;
+
             data.forEach(function(d) {
                 d.id     =  d.id;
-                d.order  = d.order;
+                d.order  = +d.order;
                 d.color  =  d.color;
                 d.weight = +d.weight;
                 d.score  = +d.score;
                 d.width  = +d.weight;
                 d.label  =  d.label;
+                var s = d.score*d.weight;
+                if(s>maxScore) maxScore = s;
+                if(s<minScore) minScore = s;
             });
+            colorAxis.domain([minScore,maxScore]);
+
             // for (var i = 0; i < data.score; i++) { console.log(data[i].id) }
 
             var path = svg.selectAll(".solidArc")
                 .data(pie(data))
                 .enter().append("path")
-                .attr("fill", function(d) { return d3Color(d.data.order); })
+                .attr("fill", function(d) {
+                    // return d3Color(d.data.order);
+                    return colorbar[colorAxis(d.data.score * d.data.weight)];
+                })
                 .attr("class", "solidArc")
                 .attr("stroke", "gray")
                 .attr("d", arc)
@@ -507,10 +528,7 @@ stavrServices.factory('StopEventlayerSever',function () {
                 data.reduce(function(a, b) {
                     //console.log('a:' + a + ', b.score: ' + b.score + ', b.weight: ' + b.weight);
                     return a + (b.score * b.weight);
-                }, 0) /
-                data.reduce(function(a, b) {
-                    return a + b.weight;
-                }, 0);
+                },0);
 
             svg.append("svg:text")
                 .attr("class", "aster-score")
@@ -590,7 +608,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         for(var i=0;i<this.selectData.length;i++){
             var carNumber = this.selectData[i][0];
 
-            var url = "http://localhost:8080/DataVisualor/EventServletJson?"+
+            var url = "http://localhost:8080/DataVisualor/EventServletJson2?"+
             "TID=&"+
             "TOwner=&"+
             "TNumber="+carNumber+"&"+
