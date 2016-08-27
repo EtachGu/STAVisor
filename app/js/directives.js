@@ -145,7 +145,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                 map.setTarget(iElement[0]);
 
                 iAttrs.$observe('title',function () {
-                    if(ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
+                    if(false && ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
 
                         var map = MapViewerSever.map;
                        // MapViewerSever.removeAllLayers();
@@ -312,17 +312,18 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                             // feature.set('name',featureObj.carNumber);
                             feature.set('color',alpColor);
                             feature.set('type',typeFeature);
+                            feature.set('time',node.time);
                             //feature.set('date',"2013-3-28");
                             feature.setStyle(new ol.style.Style({
                                 image: new ol.style.Circle({
-                                    radius: 7,
-                                    // fill: new ol.style.Fill({
-                                    //     color: color
-                                    // }),
-                                   stroke: new ol.style.Stroke({
-                                    color: color,
-                                    width: 3
-                                    })
+                                    radius: 3,
+                                    fill: new ol.style.Fill({
+                                        color: color
+                                    }),
+                                   // stroke: new ol.style.Stroke({
+                                   //  color: color,
+                                   //  width: 3
+                                   //  })
                                 })
                            }));
 
@@ -838,11 +839,7 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                                 }
                             });
 
-
-
-
-
-                            scope.x.domain(d3.extent(dataCount.map(function(d){return d.date;})));
+                            scope.x.domain([new Date(startTime),new Date(endTime)]);//d3.extent(dataCount.map(function(d){return d.date;})));
                             scope.y.domain([0,maxCount]);
                             xAxis = d3.svg.axis().scale( scope.x).orient("bottom"),
                                 yAxis = d3.svg.axis().scale(scope.y).orient("left");
@@ -985,10 +982,22 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                         timeRange[0] = brushExtent[0].getTime()/1000;
                         timeRange[1] = brushExtent[1].getTime()/1000;
 
-                        MapViewerSever.selectTrajectoryFeaturesByUTCTime(timeRange);
+                        if(scope.isBind2Trajectory){
+                            MapViewerSever.selectTrajectoryFeaturesByUTCTime(timeRange);
+                        }
+                        if(scope.isBind2Events){
+                            MapViewerSever.selectEventsFeaturesByUTCTime(timeRange);
+                        }
+
                     }
                     function clearHighlighdPoints(){
                         MapViewerSever.clearHighlightFeatures();
+                        if(scope.isBind2Events){
+                            var timeRange =[];
+                            timeRange[0] = startTime/1000;
+                            timeRange[1] = endTime/1000;
+                            MapViewerSever.selectEventsFeaturesByUTCTime(timeRange);
+                        }
                     };
 
 
@@ -1194,12 +1203,12 @@ stavrDirts.directive('myGraphChart', ['$interval','ActiveDataFactory', function(
 
 
                     node.append('circle')
-                        .attr('r', 20)
+                        .attr('r', 10)
                         .attr('fill', colorByGroup)
                         .attr('fill-opacity', 0.5);
 
                     node.append('circle')
-                        .attr('r', 4)
+                        .attr('r', 3)
                         .attr('stroke', 'black');
 
                     //标签
@@ -1299,9 +1308,6 @@ stavrDirts.directive('myGraphChart', ['$interval','ActiveDataFactory', function(
                             // .style("margin-left", -margin.left + "px")
                             .append("g")
                             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
-
 
 
                         matrixGraphSVG.append("rect")
@@ -1463,15 +1469,6 @@ stavrDirts.directive('myGraphChart', ['$interval','ActiveDataFactory', function(
                 iElement.find("#range_2").on("change",slidvalueChange);
                 iElement.find("#range_3").on("change",slidvalueChange);
                 iElement.find("#range_4").on("change",slidvalueChange);
-
-
-
-
-
-
-
-
-
 
 
                 //add  resizeView  in the end

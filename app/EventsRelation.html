@@ -20,7 +20,7 @@
                     </ul>
                     <div class="tab-content">
                         <div class="active tab-pane" id="events">
-                            <div style="position: relative; height: 300px;">
+                            <div style="position: relative; ">
                                 <div class="form-group">
                                     <label for="EventsQuery">Events Type</label>
                                     <div class="input-group">
@@ -30,6 +30,7 @@
                                         <select id="EventsQuery" class="form-control">
                                             <option>Stop Events</option>
                                             <option>Turn Events</option>
+                                            <option>Traffic Events</option>
                                             <option>Low Speed Events</option>
                                             <option><i class="fa fa-car">Add More Type</i></option>
                                         </select>
@@ -48,6 +49,18 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label for="SpatialArea">Spatial Area Filter</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-globe"></i>
+                                        </div>
+                                        <input type="text" class="form-control" id="SpatialArea" placeholder="All Area" ng-model="selectArea">
+                                    <span class="input-group-btn">
+                                        <button type="submit" name="search" id="searchSpatialArea" class="btn btn-flat" ng-click="showSpatialAreaTable()"><i class="fa fa-filter" ></i></button>
+                                    </span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label>Date and time range</label>
                                     <div class="input-group">
                                         <div class="input-group-addon">
@@ -60,11 +73,10 @@
                                 <button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>
                                 <button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>
                             </div>
-
                         </div><!-- /.tab-pane -->
 
                         <div class="tab-pane" id="maplayers">
-                            <div style="position: relative; height: 300px;">
+                            <div style="position: relative;">
                                 <section class="map-layers">
                                     <ul class="layers-set">
                                         <li class="treeview">
@@ -89,12 +101,12 @@
                                                 </li>
                                                 <li>
                                                     <input type="checkbox" value="" name="">
-                                                <span class="handle">
-                                                <i class="fa fa-car"></i>
-                                                </span>
+                                                    <span class="handle">
+                                                    <i class="fa fa-car"></i>
+                                                    </span>
                                                     <span class="text">Trajectory</span>
                                                     <div class="tools">
-                                                        <i class="fa fa-edit" ng-click="trajLayerEdit()"></i>
+                                                        <i class="fa fa-edit"  ng-click="trajLayerEdit()"></i>
                                                         <i class="fa fa-trash-o"></i>
                                                     </div>
                                                 </li>
@@ -150,12 +162,20 @@
                         </div><!-- /.tab-pane -->
 
                         <div class="tab-pane" id="time">
-                            <div style="position: relative; height: 300px;">
+                            <div style="position: relative;">
+                                <div ng-click="timeControllerBind()">
+                                    <label>
+                                    <input type="checkbox" name="checkTime" id="cbBindTrajectory" checked> Bind to Trajectory
+                                </label>
+                                    <label>
+                                        <input type="checkbox" name="checkTime" id="cbBindEvents" checked> Bind to Events
+                                    </label>
+                                </div>
                                 <button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>
                             </div>
                         </div><!-- /.tab-pane -->
                         <div class="tab-pane" id="Relation">
-                            <div style="position: relative; height: 300px;">
+                            <div style="position: relative;">
                                 <div class="form-group">
                                     <label for="SpatialDis">Spatial Distance</label>
                                     <div class="input-group">
@@ -181,8 +201,8 @@
                                             <option>1 year</option>
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" ng-click="executeRelation()">Execute</button>
                                 </div>
+                                <button type="submit" class="btn btn-primary" ng-click="executeRelation()">Execute</button>
                             </div>
                         </div><!-- /.tab-pane -->
 

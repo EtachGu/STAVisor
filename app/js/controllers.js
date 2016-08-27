@@ -262,9 +262,9 @@ stavrCtrl.controller('MapCtrl',['$scope','MapViewerSever','StopEventlayerSever',
     // }
 
 
-    var urlgeoJsonFileSet = ["luoyuRoad.geojson","track18308_8.geojson","track20196_19.geojson"];
+    var urlgeoJsonFileSet = ["luoyuRoad.geojson","track18308.geojson"];
     var d3color = d3.scale.category10();
-    for(var i=5;i<urlgeoJsonFileSet.length;i++)
+    for(var i=0;i<urlgeoJsonFileSet.length;i++)
     {
         var eventLayer = new ol.layer.Vector();
         eventLayer.setSource( new ol.source.Vector({
@@ -273,6 +273,10 @@ stavrCtrl.controller('MapCtrl',['$scope','MapViewerSever','StopEventlayerSever',
         }));
         if(i==1){
             eventLayer.setStyle(new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: '#ff7f0e',
+                    width: 1
+                }),
                 image: new ol.style.Circle({
                     radius: 5,
                     stroke: new ol.style.Stroke({
@@ -280,7 +284,6 @@ stavrCtrl.controller('MapCtrl',['$scope','MapViewerSever','StopEventlayerSever',
                         width: 3
                     })
                 })
-
             }));
         }
         else if(i==2){
@@ -2384,6 +2387,11 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
     $scope.$on('updateSelectData',function () {
         $scope.selectedCars = ActiveDataFactory.getSelectDataCarNumberStr();
     });
+    
+    // Select Spatial Area
+    $scope.showSpatialAreaTable = function () {
+
+    }
 
 
     $scope.queryClick = function(){
@@ -2427,6 +2435,14 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
 
     };
 
+
+    //time
+    $scope.isBind2Trajectory = true;
+    $scope.isBind2Events = true;
+    $scope.timeControllerBind = function () {
+        $scope.isBind2Trajectory = document.getElementById("cbBindTrajectory").checked;
+        $scope.isBind2Events = document.getElementById("cbBindEvents").checked;
+    }
 
 
 }]);

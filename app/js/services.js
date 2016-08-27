@@ -426,6 +426,56 @@ stavrServices.factory('MapViewerSever', function () {
         service.map.render();
     };
 
+    service.selectEventsFeaturesByUTCTime = function(timeRange){
+        service.eventsFeatures.getArray().forEach(function (feature) {
+            var time = new Date( feature.get("time") );
+            var type  = feature.get("type");
+            var hexcolor = feature.get("color");
+            if(type!=="MultiPoint") return;
+
+            var t = time.getTime()/1000;
+            var min = timeRange[0];
+            var max = timeRange[1];
+            if(t >= min && t <= max){
+                var highAlpColor = ol.color.asArray(hexcolor);
+                highAlpColor = highAlpColor.slice();
+                highAlpColor[3] = 0.8;
+
+                feature.setStyle( new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 3,
+                        fill:new ol.style.Fill({
+                            color:highAlpColor
+                        })
+                        // stroke: new ol.style.Stroke({
+                        //     color: highAlpColor,
+                        //     width: 3
+                        // })
+                    })
+                }));
+            }else{
+                var alpColor = ol.color.asArray(hexcolor);
+                alpColor = alpColor.slice();
+                alpColor[3] = 0.1;
+                // feature.getStyle().getImage().getFill().setColor(alpColor);
+                feature.setStyle( new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 3,
+                        fill:new ol.style.Fill({
+                            color:alpColor
+                        })
+                        // stroke: new ol.style.Stroke({
+                        //     color: alpColor,
+                        //     width: 3
+                        // })
+                    })
+                }));
+            }
+
+        });
+        service.map.render();
+    };
+
     service.clearHighlightFeatures = function(){
         highllightSource.clear();
     };
@@ -664,7 +714,17 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     // set relation parameter
     service.setRelationParameter = function(distance,timeDelta){
         service.spatialDistance = distance;
-        service.temporalDistance = timeDelta;
+        var timeInterval = 0;
+        switch (timeDelta){
+            case "1 minute": timeInterval =60;break;
+            case "30 minute":timeInterval =30*60;break;
+            case "1 hour":timeInterval = 60*60;break;
+            case "1 day":timeInterval = 24*60*60;break;
+            case "1 week":timeInterval = 7*24*60*60;break;
+            case "1 month":timeInterval = 30*24*60*60;break;
+            case "1 year":timeInterval = 365*24*60*60;break;
+        }
+        service.temporalDistance = timeInterval;
     };
 
 
@@ -751,8 +811,10 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
         var urlCalls = [];
 
-        angular.forEach(geoJsonFileSet, function(url) {
-            urlCalls.push($http.get(url,{cache:true}));
+        angular.forEach(geoJsonFileSet, function(url,i) {
+            if(i<5){
+                urlCalls.push($http.get(url,{cache:true}));
+            }
         });
 
         // they may, in fact, all be done, but this
@@ -829,7 +891,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
             "TStartTime="+ tStartTime + "&" +
             "TEndTime=" + tEndTime + "&" +
             "DistanceThreshold=" + spatialDis + "&" +
-            "tDistanceThreshold=0";// + temporalDis;
+            "tDistanceThreshold="+temporalDis;
 
 
 
