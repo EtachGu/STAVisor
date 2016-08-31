@@ -1078,6 +1078,20 @@ stavrCtrl.controller('CarDataTableMICtrl',['$scope','$uibModalInstance','$rootSc
         }
     };
 
+    $scope.selectPage =function(){
+        if($scope.table) {
+            // select all current rows
+            var p = $scope.table.rows({page: 'current'}).nodes();
+            p.each(function (e) {
+                $(e).addClass('active');
+            });
+            $scope.selectedrows = $scope.table.rows('.active').data().length;
+            var selectedData = $scope.table.rows('.active').data();
+            ActiveDataFactory.setSelectData(selectedData);
+            $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        }
+    }
+
     $scope.tableClick =function () {
         if($scope.table){
             $scope.selectedrows = $scope.table.rows('.active').data().length;
@@ -2395,7 +2409,7 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
 
 
     $scope.queryClick = function(){
-
+        ActiveDataFactory.setEventsType($scope.eventsType);
         ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
 
         $scope.isSelectedDataTable = !$scope.isSelectedDataTable;

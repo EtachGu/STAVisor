@@ -145,7 +145,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                 map.setTarget(iElement[0]);
 
                 iAttrs.$observe('title',function () {
-                    if(false && ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
+                    if(ActiveDataFactory.isMapUpdate && ActiveDataFactory.isSelectDataExist()){
 
                         var map = MapViewerSever.map;
                        // MapViewerSever.removeAllLayers();
@@ -312,18 +312,18 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                             // feature.set('name',featureObj.carNumber);
                             feature.set('color',alpColor);
                             feature.set('type',typeFeature);
-                            feature.set('time',node.time);
+                            feature.set('time',+node.time);
                             //feature.set('date',"2013-3-28");
                             feature.setStyle(new ol.style.Style({
                                 image: new ol.style.Circle({
-                                    radius: 3,
-                                    fill: new ol.style.Fill({
-                                        color: color
-                                    }),
-                                   // stroke: new ol.style.Stroke({
-                                   //  color: color,
-                                   //  width: 3
-                                   //  })
+                                    radius: 5,
+                                    // fill: new ol.style.Fill({
+                                    //     color: color
+                                    // }),
+                                   stroke: new ol.style.Stroke({
+                                    color: color,
+                                    width: 3
+                                    })
                                 })
                            }));
 
@@ -334,6 +334,69 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                     },function (data) {
                         alert(data);
                     });
+                    ActiveDataFactory.callEventData().then(function(data){
+                        var dataObj = JSON.parse(data);
+                        if(dataObj.length===0) return;
+                        var typeFeature = "MultiPoint";
+                        var d3Color = d3.scale.category10();
+                        var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                        for(var k=0;k<dataObj.length;k++){
+                            var events = dataObj[k].data.Events;
+                            for(var i=0;i<events.length;i++) {
+                                var event = events[i];
+                                var coords = [];
+                                coords[0] = event.lon;
+                                coords[1] = event.lat;
+                                var c = transformFn(coords, undefined, coords.length);
+
+                                var color = d3Color(event.status);
+
+                                var feature = new ol.Feature({
+                                    geometry: new ol.geom.Point(c),
+                                    style: new ol.style.Style({
+                                        stroke: new ol.style.Stroke({
+                                            color: color,
+                                            width: 2
+                                        }),
+                                        // fill: new ol.style.Fill({
+                                        //     color: featureObj.colorLine
+                                        // }),
+                                        image: new ol.style.Circle({
+                                            radius: 7,
+                                            fill: new ol.style.Fill({
+                                                color: color
+                                            })
+                                        })
+                                    })
+                                });
+
+                                var alpColor = ol.color.asArray(color);
+                                alpColor = alpColor.slice();
+                                alpColor[3] = 0.5;
+
+                                // feature.set('name',featureObj.carNumber);
+                                feature.set('color', alpColor);
+                                feature.set('type', typeFeature);
+                                feature.set('time', +event.time);
+                                //feature.set('date',"2013-3-28");
+                                feature.setStyle(new ol.style.Style({
+                                    image: new ol.style.Circle({
+                                        radius: 5,
+                                        // fill: new ol.style.Fill({
+                                        //     color: color
+                                        // }),
+                                        stroke: new ol.style.Stroke({
+                                            color: color,
+                                            width: 3
+                                        })
+                                    })
+                                }));
+
+                                MapViewerSever.eventsFeatures.push(feature);
+                            }
+                        }
+
+                    },function(e){alert(e);});
 
                 });
                 // add Marker

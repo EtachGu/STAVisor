@@ -428,12 +428,12 @@ stavrServices.factory('MapViewerSever', function () {
 
     service.selectEventsFeaturesByUTCTime = function(timeRange){
         service.eventsFeatures.getArray().forEach(function (feature) {
-            var time = new Date( feature.get("time") );
+            var t =feature.get("time");
             var type  = feature.get("type");
             var hexcolor = feature.get("color");
             if(type!=="MultiPoint") return;
 
-            var t = time.getTime()/1000;
+
             var min = timeRange[0];
             var max = timeRange[1];
             if(t >= min && t <= max){
@@ -443,14 +443,14 @@ stavrServices.factory('MapViewerSever', function () {
 
                 feature.setStyle( new ol.style.Style({
                     image: new ol.style.Circle({
-                        radius: 3,
-                        fill:new ol.style.Fill({
-                            color:highAlpColor
-                        })
-                        // stroke: new ol.style.Stroke({
-                        //     color: highAlpColor,
-                        //     width: 3
+                        radius: 5,
+                        // fill:new ol.style.Fill({
+                        //     color:highAlpColor
                         // })
+                        stroke: new ol.style.Stroke({
+                            color: highAlpColor,
+                            width: 3
+                        })
                     })
                 }));
             }else{
@@ -460,14 +460,14 @@ stavrServices.factory('MapViewerSever', function () {
                 // feature.getStyle().getImage().getFill().setColor(alpColor);
                 feature.setStyle( new ol.style.Style({
                     image: new ol.style.Circle({
-                        radius: 3,
-                        fill:new ol.style.Fill({
-                            color:alpColor
-                        })
-                        // stroke: new ol.style.Stroke({
-                        //     color: alpColor,
-                        //     width: 3
+                        radius: 5,
+                        // fill:new ol.style.Fill({
+                        //     color:alpColor
                         // })
+                        stroke: new ol.style.Stroke({
+                            color: alpColor,
+                            width: 3
+                        })
                     })
                 }));
             }
@@ -618,6 +618,10 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         service.endDate = endDate;
     };
 
+    service.setEventsType = function(eventsType){
+        service.eventsType = eventsType;
+    }
+
     service.getDateRange = function () {
         var dateRange ={};
         dateRange.startDate =  this.startDate;
@@ -658,12 +662,25 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         for(var i=0;i<this.selectData.length;i++){
             var carNumber = this.selectData[i][0];
 
-            var url = "http://localhost:8080/DataVisualor/EventServletJson2?"+
-            "TID=&"+
-            "TOwner=&"+
-            "TNumber="+carNumber+"&"+
-            "TStartTime="+tStartTime+"&"+
-            "TEndTime=" + tEndTime;
+            var url= "";
+            switch (service.eventsType){
+                case "Carries": url = "http://localhost:8080/DataVisualor/ODEventServletJson2?"+
+                    "TID=&"+
+                    "TOwner=&"+
+                    "TNumber="+carNumber+"&"+
+                    "TStartTime="+tStartTime+"&"+
+                    "TEndTime=" + tEndTime + "&"+
+                    "Type="; break;
+                case "Stop Events":  url = "http://localhost:8080/DataVisualor/EventServletJson2?"+
+                    "TID=&"+
+                    "TOwner=&"+
+                    "TNumber="+carNumber+"&"+
+                    "TStartTime="+tStartTime+"&"+
+                    "TEndTime=" + tEndTime; break;
+                case "Turn Events":
+                case "Traffic Events":
+                case "Low Speed Events":
+            }
 
             urlSet[i] = url;
         }
@@ -717,6 +734,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         var timeInterval = 0;
         switch (timeDelta){
             case "1 minute": timeInterval =60;break;
+            case "5 minute": timeInterval =5*60;break;
+            case "10 minute": timeInterval =10*60;break;
             case "30 minute":timeInterval =30*60;break;
             case "1 hour":timeInterval = 60*60;break;
             case "1 day":timeInterval = 24*60*60;break;
