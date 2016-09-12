@@ -17,6 +17,7 @@ var stavrApp = angular.module('stavrApp', [
 stavrApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
+
       when('/overview', {
         templateUrl: '../Main.html',
         controller:'ViewCtrl'
