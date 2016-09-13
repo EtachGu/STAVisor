@@ -23,7 +23,8 @@ stavrApp.config(['$routeProvider',
         controller:'ViewCtrl'
       }).
       when('/overview/view1', {
-        templateUrl:'../MainView1.html',
+        // templateUrl:'../MainView1.html',
+        templateUrl:'../view1.html',
         controller:'View1Ctrl',
         css:'lib/ALTE/datatables/dataTables.bootstrap.css'
       }).
@@ -60,7 +61,7 @@ stavrApp.config(['$routeProvider',
         controller:'HelpCtrl'
       }).
       otherwise({
-        redirectTo: '/overview'
+        redirectTo: '/overview/view1'
        });
   }]);
 

@@ -56,6 +56,103 @@ stavrCtrl.controller('View1Ctrl',['$scope','$routeParams','ActiveDataFactory',fu
     });
     $(".connectedSortable .box-header, .connectedSortable .nav-tabs-custom").css("cursor", "move");
 
+
+    $scope.selectedStartDate = "2013-01-01";
+    $scope.selectedEndDate = "2013-02-28";
+
+    /* initialize the calendar
+     -----------------------------------------------------------------*/
+    //Date for the calendar events (dummy data)
+    var start = $.fullCalendar.moment('2013-01-01');
+    var date = new Date("2013-01-01");
+    var d = date.getDate(),
+        m = date.getMonth(),
+        y = date.getFullYear();
+    $('#calendar').fullCalendar({
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'month,agendaWeek,agendaDay'
+        },
+        buttonText: {
+            today: 'today',
+            month: 'month',
+            week: 'week',
+            day: 'day'
+        },
+        //Random default events
+        events: [
+            {
+                title: 'All Day Event',
+                start: new Date(y, m, 1),
+                backgroundColor: "#f56954", //red
+                borderColor: "#f56954" //red
+            },
+            {
+                title: 'Long Event',
+                start: new Date(y, m, d - 5),
+                end: new Date(y, m, d - 2),
+                backgroundColor: "#f39c12", //yellow
+                borderColor: "#f39c12" //yellow
+            },
+            {
+                title: 'Birthday Party',
+                start: new Date(y, m, d + 1, 19, 0),
+                end: new Date(y, m, d + 1, 22, 30),
+                allDay: false,
+                backgroundColor: "#00a65a", //Success (green)
+                borderColor: "#00a65a" //Success (green)
+            },
+            {
+                title: 'Click for Google',
+                start: new Date(y, m, 28),
+                end: new Date(y, m, 29),
+                url: 'http://google.com/',
+                backgroundColor: "#3c8dbc", //Primary (light-blue)
+                borderColor: "#3c8dbc" //Primary (light-blue)
+            }
+        ],
+        editable: true,
+        defaultDate:start,
+        eventRender:function(event,element){
+            $(element).append().html("");
+            var width = 310;
+            var height = 60;
+            var svg = d3.select(document.createElement("div")).append("svg")
+                .attr("height",height).append("g");
+            var x = d3.scale.ordinal()
+                .rangeRoundBands([0, width], .1);
+
+            var y = d3.scale.linear()
+                .range([height-10, 0]);
+
+            var data =[{a:1,b:10},{a:2,b:20},{a:3,b:30},{a:4,b:15}];
+
+            x.domain(data.map(function(d) { return d.a; }));
+            y.domain([0, d3.max(data, function(d) { return d.b; })]);
+
+
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x(d.a); })
+                .attr("width", x.rangeBand())
+                .attr("y", function(d) { return y(d.b); })
+                .attr("height", function(d) { return height - y(d.b); });
+
+            $(element).append(svg[0]);
+
+        }
+
+
+
+
+    });
+
+
+
+
     $scope.isSelectedDataTable = false;
     $scope.queryClick = function(){
         var tID = "";
