@@ -922,6 +922,116 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         });
         return deferred.promise;
     };
+    
+    
+    
+    // initialize the FullCalendar Data
+    service.callFullCalendarEvents = function() {
+
+        var deferred = $q.defer();
+
+
+        var eventFiles = ["mbar/calendarData/20130101.csv",
+            "mbar/calendarData/20130102.csv",
+            "mbar/calendarData/20130103.csv",
+            "mbar/calendarData/20130104.csv",
+            "mbar/calendarData/20130105.csv",
+            "mbar/calendarData/20130106.csv",
+            "mbar/calendarData/20130107.csv",
+            "mbar/calendarData/20130108.csv",
+            "mbar/calendarData/20130109.csv",
+            "mbar/calendarData/20130110.csv",
+            "mbar/calendarData/20130111.csv",
+            "mbar/calendarData/20130112.csv",
+            "mbar/calendarData/20130113.csv",
+            "mbar/calendarData/20130114.csv",
+            "mbar/calendarData/20130115.csv",
+            "mbar/calendarData/20130116.csv",
+            "mbar/calendarData/20130117.csv",
+            "mbar/calendarData/20130121.csv",
+            "mbar/calendarData/20130122.csv",
+            "mbar/calendarData/20130126.csv",
+            "mbar/calendarData/20130129.csv",
+            "mbar/calendarData/weather.csv"
+        ];
+
+        var createEvent = function (data) {
+            var events = [];
+            var length = data.length;
+            var reg = new RegExp('[0-9]+');
+            data.forEach(function (e,i) {
+                if(i>length-2) return;
+                var url = e.config.url;
+                var timeStr = url.match(reg)[0] || "20130101";
+                var y = +timeStr.substr(0, 4);
+                var m = +timeStr.substr(4, 2)-1;
+                var d = +timeStr.substr(6, 2);
+                var dataEvent = d3.csv.parse(e.data);
+                var event = {
+                        title: timeStr,
+                        start: new Date(y, m, d, 0, 0),
+                        end: new Date(y, m, d, 23, 59),
+                        backgroundColor: "#ffffff", //white
+                        borderColor:  "#ffffff" //white
+                };
+                event.data = dataEvent;
+                events.push(event);
+            });
+            var weatherIconMap = [{weather: "多云", class: "wi wi-day-cloudy"},
+                {weather: "晴", class: "wi wi-sunny"},
+                {weather: "小雨", class: "wi wi-sprinkle"},
+                {weather: "阴", class: "wi wi-cloudy"},
+                {weather: "阴转多云", class: "wi wi-day-cloudy"},
+                {weather: "雨夹雪", class: "wi wi-sleet"},
+                {weather: "中雨", class: "wi wi-rain"}
+            ];
+
+            var dataWeather = d3.csv.parse(data[length-1].data);
+            dataWeather.forEach(function (e) {
+                    var day = e.day;
+                    var event = events.filter(function (event) {
+                        return event.title == day;
+                    });
+                    var weather = e.weather;
+                    var temperature = e.temperature;
+                    var weatherIcon = weatherIconMap.filter(function (w) {
+                        return w.weather == weather;
+                    });
+                    event[0].dataWeather = "<i class='" + weatherIcon[0].class + "'style='font-size:15px' >" + temperature + "</i>";
+            });
+
+            return events;
+        };
+
+
+        var urlCalls = [];
+
+        angular.forEach(eventFiles, function(url,i) {
+                urlCalls.push($http.get(url,{cache:true}));
+        });
+
+        $q.all(urlCalls)
+            .then(
+            function(results) {
+
+                var events = createEvent(results);
+
+
+                deferred.resolve(events);
+            },
+            function(errors) {
+                deferred.reject(errors);
+            },
+            function(updates) {
+                deferred.update(updates);
+            });
+
+        return deferred.promise;
+    };
+    service.fullcalendarEventRender = function(event){
+
+    };
+    
 
     return service;
 

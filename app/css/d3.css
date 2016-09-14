@@ -65,3 +65,12 @@ text.active {
     font:15px sans-serif;
     fill: red;
 }
+
+.bar {
+    fill-opacity:.9;
+    fill:steelblue;
+
+}
+.bar:hover {
+    fill: orangered;
+}
