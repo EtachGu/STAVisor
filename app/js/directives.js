@@ -265,95 +265,26 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                         ActiveDataFactory.isMapUpdate =false;
 
-
-
-
-
-
                     }
-                    ActiveDataFactory.callRelationsData().then(function(data){
-                        var nodes = data.nodes;
+                    if(ActiveDataFactory.isMapUpdateRelation && ActiveDataFactory.isSelectDataExist()){
+                        ActiveDataFactory.callRelationsData().then(function(data){
+                            var nodes = data.nodes;
 
-                        var typeFeature = "MultiPoint";
-                        var d3Color = d3.scale.category10();
-                        var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
-                        for(var i=0;i<nodes.length;i++){
-                            var node = nodes[i];
-                            var coords = [];
-                            coords[0] = node.lon;
-                            coords[1] = node.lat;
-                            var c = transformFn(coords, undefined, coords.length);
-
-                            var color = d3Color(node.group);
-
-                            var feature = new ol.Feature({
-                                geometry: new ol.geom.Point(c),
-                                style:   new ol.style.Style({
-                                    stroke: new ol.style.Stroke({
-                                        color: color,
-                                        width: 2
-                                    }),
-                                    // fill: new ol.style.Fill({
-                                    //     color: featureObj.colorLine
-                                    // }),
-                                    image: new ol.style.Circle({
-                                        radius: 7,
-                                        fill: new ol.style.Fill({
-                                            color: color
-                                        })
-                                    })
-                                })
-                            });
-
-                            var alpColor = ol.color.asArray(color);
-                            alpColor = alpColor.slice();
-                            alpColor[3] = 0.5;
-
-                            // feature.set('name',featureObj.carNumber);
-                            feature.set('color',alpColor);
-                            feature.set('type',typeFeature);
-                            feature.set('time',+node.time);
-                            //feature.set('date',"2013-3-28");
-                            feature.setStyle(new ol.style.Style({
-                                image: new ol.style.Circle({
-                                    radius: 5,
-                                    // fill: new ol.style.Fill({
-                                    //     color: color
-                                    // }),
-                                   stroke: new ol.style.Stroke({
-                                    color: color,
-                                    width: 3
-                                    })
-                                })
-                           }));
-
-                            MapViewerSever.eventsFeatures.push(feature);
-
-                        }
-
-                    },function (data) {
-                        alert(data);
-                    });
-                    ActiveDataFactory.callEventData().then(function(data){
-                        var dataObj = JSON.parse(data);
-                        if(dataObj.length===0) return;
-                        var typeFeature = "MultiPoint";
-                        var d3Color = d3.scale.category10();
-                        var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
-                        for(var k=0;k<dataObj.length;k++){
-                            var events = dataObj[k].data.Events;
-                            for(var i=0;i<events.length;i++) {
-                                var event = events[i];
+                            var typeFeature = "MultiPoint";
+                            var d3Color = d3.scale.category10();
+                            var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                            for(var i=0;i<nodes.length;i++){
+                                var node = nodes[i];
                                 var coords = [];
-                                coords[0] = event.lon;
-                                coords[1] = event.lat;
+                                coords[0] = node.lon;
+                                coords[1] = node.lat;
                                 var c = transformFn(coords, undefined, coords.length);
 
-                                var color = d3Color(event.status);
+                                var color = d3Color(node.group);
 
                                 var feature = new ol.Feature({
                                     geometry: new ol.geom.Point(c),
-                                    style: new ol.style.Style({
+                                    style:   new ol.style.Style({
                                         stroke: new ol.style.Stroke({
                                             color: color,
                                             width: 2
@@ -375,9 +306,9 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                 alpColor[3] = 0.5;
 
                                 // feature.set('name',featureObj.carNumber);
-                                feature.set('color', alpColor);
-                                feature.set('type', typeFeature);
-                                feature.set('time', +event.time);
+                                feature.set('color',alpColor);
+                                feature.set('type',typeFeature);
+                                feature.set('time',+node.time);
                                 //feature.set('date',"2013-3-28");
                                 feature.setStyle(new ol.style.Style({
                                     image: new ol.style.Circle({
@@ -393,10 +324,79 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                 }));
 
                                 MapViewerSever.eventsFeatures.push(feature);
-                            }
-                        }
 
-                    },function(e){alert(e);});
+                            }
+
+                        },function (data) {
+                            alert(data);
+                        });
+                    }
+                    if(ActiveDataFactory.isMapUpdateEvent && ActiveDataFactory.isSelectDataExist() ){
+                        ActiveDataFactory.callEventData().then(function(data){
+                            var dataObj = JSON.parse(data);
+                            if(dataObj.length===0) return;
+                            var typeFeature = "MultiPoint";
+                            var d3Color = d3.scale.category10();
+                            var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                            for(var k=0;k<dataObj.length;k++){
+                                var events = dataObj[k].data.Events;
+                                for(var i=0;i<events.length;i++) {
+                                    var event = events[i];
+                                    var coords = [];
+                                    coords[0] = event.lon;
+                                    coords[1] = event.lat;
+                                    var c = transformFn(coords, undefined, coords.length);
+
+                                    var color = d3Color(event.status);
+
+                                    var feature = new ol.Feature({
+                                        geometry: new ol.geom.Point(c),
+                                        style: new ol.style.Style({
+                                            stroke: new ol.style.Stroke({
+                                                color: color,
+                                                width: 2
+                                            }),
+                                            // fill: new ol.style.Fill({
+                                            //     color: featureObj.colorLine
+                                            // }),
+                                            image: new ol.style.Circle({
+                                                radius: 7,
+                                                fill: new ol.style.Fill({
+                                                    color: color
+                                                })
+                                            })
+                                        })
+                                    });
+
+                                    var alpColor = ol.color.asArray(color);
+                                    alpColor = alpColor.slice();
+                                    alpColor[3] = 0.5;
+
+                                    // feature.set('name',featureObj.carNumber);
+                                    feature.set('color', alpColor);
+                                    feature.set('type', typeFeature);
+                                    feature.set('time', +event.time);
+                                    //feature.set('date',"2013-3-28");
+                                    feature.setStyle(new ol.style.Style({
+                                        image: new ol.style.Circle({
+                                            radius: 5,
+                                            // fill: new ol.style.Fill({
+                                            //     color: color
+                                            // }),
+                                            stroke: new ol.style.Stroke({
+                                                color: color,
+                                                width: 3
+                                            })
+                                        })
+                                    }));
+
+                                    MapViewerSever.eventsFeatures.push(feature);
+                                }
+                            }
+
+                        },function(e){alert(e);});
+                    }
+
 
 
                     // ODLines

@@ -620,7 +620,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
     service.setEventsType = function(eventsType){
         service.eventsType = eventsType;
-    }
+        service.isMapUpdateEvent = true;
+    };
 
     service.getDateRange = function () {
         var dateRange ={};
@@ -755,6 +756,9 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     };
 
     service.isMapUpdate = false;
+    service.isMapUpdateTrajectory = false;
+    service.isMapUpdateRelation = false;
+    service.isMapUpdateEvent = false;
     service.isUpdateODEvents =false;
 
 
@@ -802,6 +806,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     service.callTrajectoryData = function (carNumber,typeFeature) {
 
 
+
         var tStartTime = service.startDate;
         var tEndTime = service.endDate;
         var url = "http://localhost:8080/DataVisualor/ServletJson2?"+
@@ -814,12 +819,15 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
 
         var deferred = $q.defer();
+        if(!service.isMapUpdateTrajectory) return deferred.promise;
 
         $http.get(url,{cache:true}).success(function (data) {
             deferred.resolve(data);
         }).error(function () {
             deferred.reject('There was an error');
         });
+
+        service.isMapUpdateTrajectory = false;
         return deferred.promise;
     };
 
@@ -828,6 +836,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         var geoJsonFileSet = this.getEventsJsonUrlSet();
 
         var deferred = $q.defer();
+        if(!service.isMapUpdateEvent) return deferred.promise;
 
         var urlCalls = [];
 
@@ -853,6 +862,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
                     deferred.update(updates);
                 });
 
+
+        service.isMapUpdateEvent = false;
         return deferred.promise;
 
     };
@@ -883,8 +894,9 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
     service.callRelationsData = function(){
 
-        var deferred = $q.defer();
 
+        var deferred = $q.defer();
+        if(!service.isMapUpdateRelation) return deferred.promise;
         if(!service.selectData)  return deferred.promise;
 
         if(service.spatialDistance == "")  return deferred.promise;
@@ -921,6 +933,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         }).error(function () {
             deferred.reject('There was an error');
         });
+        service.isMapUpdateRelation = false;
         return deferred.promise;
     };
     
@@ -1030,10 +1043,9 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     };
 
     service.callODEvents = function(){
-        if(!service.isUpdateODEvents) return;
 
         var deferred = $q.defer();
-
+        if(!service.isUpdateODEvents) return deferred.promise;
 
         var eventFiles = ["mbar/calendarData/20130101.csv",
             "mbar/calendarData/20130102.csv",

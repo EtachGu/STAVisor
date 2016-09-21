@@ -165,8 +165,9 @@ stavrCtrl.controller('ContentCtrl',['$scope','$uibModal','ActiveDataFactory',fun
 
 
     $scope.queryClick = function(){
-        ActiveDataFactory.setEventsType($scope.eventsType);
+        ActiveDataFactory.setEventsType($scope.eventsType);   //contains the MapUpdateEvents
         ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+
 
         $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
         $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
@@ -199,8 +200,10 @@ stavrCtrl.controller('ContentCtrl',['$scope','$uibModal','ActiveDataFactory',fun
 
         ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
 
+        ActiveDataFactory.isMapUpdateRelation = true;
         $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
         $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+
 
 
     };
