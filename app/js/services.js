@@ -490,103 +490,103 @@ stavrServices.factory('StopEventlayerSever',function () {
     var number = 0;
 
     return function(){
-        number +=1;
-        var d3Color = d3.scale.category10();
-        var colorbar = ['#ffffcc',
-            '#ffeda0',
-            '#fed976',
-            '#feb24c',
-            '#fd8d3c',
-            '#fc4e2a',
-            '#e31a1c',
-            '#b10026',
-        ];
-        var width = 80,
-            height = 80,
-            radius = Math.min(width, height) / 2,
-            innerRadius = 0.3 * radius,
-            idName = "marker_" + number;
-        
-        var colorAxis = d3.scale.quantize().range([0,1,2,3,4,5,6,7]);
-
-        var pie = d3.layout.pie()
-            .sort(null)
-            .value(function(d) { return d.width; });
-
-        var tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .offset([0, 0])
-            .html(function(d) {
-                return d.data.label + ": <span style='color:orangered'>" + d.data.score + "</span>";
-            });
-
-        var arc = d3.svg.arc()
-            .innerRadius(innerRadius)
-            .outerRadius(function (d) {
-                return (radius - innerRadius) * (d.data.score / 100.0) + innerRadius;
-            });
-
-        var outlineArc = d3.svg.arc()
-            .innerRadius(innerRadius)
-            .outerRadius(radius);
-
-        //var svg = document.createElement("svg")
-        var svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("id",idName)
-            .append("g")
-            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-        svg.call(tip);
-
-        d3.csv('aster_data.csv', function(error, data) {
-
-            var maxScore =0,minScore=Number.MAX_VALUE;
-
-            data.forEach(function(d) {
-                d.id     =  d.id;
-                d.order  = +d.order;
-                d.color  =  d.color;
-                d.weight = +d.weight;
-                d.score  = +d.score;
-                d.width  = +d.weight;
-                d.label  =  d.label;
-                var s = d.score*d.weight;
-                if(s>maxScore) maxScore = s;
-                if(s<minScore) minScore = s;
-            });
-            colorAxis.domain([minScore,maxScore]);
-
-            // for (var i = 0; i < data.score; i++) { console.log(data[i].id) }
-
-            var path = svg.selectAll(".solidArc")
-                .data(pie(data))
-                .enter().append("path")
-                .attr("fill", function(d) {
-                    // return d3Color(d.data.order);
-                    return colorbar[colorAxis(d.data.score * d.data.weight)];
-                })
-                .attr("class", "solidArc")
-                .attr("stroke", "gray")
-                .attr("d", arc)
-                .on('mouseover', tip.show)
-                .on('mouseout', tip.hide);
-
-            // calculate the weighted mean score
-            var score =
-                data.reduce(function(a, b) {
-                    //console.log('a:' + a + ', b.score: ' + b.score + ', b.weight: ' + b.weight);
-                    return a + (b.score * b.weight);
-                },0);
-
-            svg.append("svg:text")
-                .attr("class", "aster-score")
-                .attr("dy", ".35em")
-                .attr("text-anchor", "middle") // text-align: right
-                .text(score);
-
-        });
+        // number +=1;
+        // var d3Color = d3.scale.category10();
+        // var colorbar = ['#ffffcc',
+        //     '#ffeda0',
+        //     '#fed976',
+        //     '#feb24c',
+        //     '#fd8d3c',
+        //     '#fc4e2a',
+        //     '#e31a1c',
+        //     '#b10026',
+        // ];
+        // var width = 80,
+        //     height = 80,
+        //     radius = Math.min(width, height) / 2,
+        //     innerRadius = 0.3 * radius,
+        //     idName = "marker_" + number;
+        //
+        // var colorAxis = d3.scale.quantize().range([0,1,2,3,4,5,6,7]);
+        //
+        // var pie = d3.layout.pie()
+        //     .sort(null)
+        //     .value(function(d) { return d.width; });
+        //
+        // var tip = d3.tip()
+        //     .attr('class', 'd3-tip')
+        //     .offset([0, 0])
+        //     .html(function(d) {
+        //         return d.data.label + ": <span style='color:orangered'>" + d.data.score + "</span>";
+        //     });
+        //
+        // var arc = d3.svg.arc()
+        //     .innerRadius(innerRadius)
+        //     .outerRadius(function (d) {
+        //         return (radius - innerRadius) * (d.data.score / 100.0) + innerRadius;
+        //     });
+        //
+        // var outlineArc = d3.svg.arc()
+        //     .innerRadius(innerRadius)
+        //     .outerRadius(radius);
+        //
+        // //var svg = document.createElement("svg")
+        // var svg = d3.select("body").append("svg")
+        //     .attr("width", width)
+        //     .attr("height", height)
+        //     .attr("id",idName)
+        //     .append("g")
+        //     .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+        //
+        // svg.call(tip);
+        //
+        // d3.csv('aster_data.csv', function(error, data) {
+        //
+        //     var maxScore =0,minScore=Number.MAX_VALUE;
+        //
+        //     data.forEach(function(d) {
+        //         d.id     =  d.id;
+        //         d.order  = +d.order;
+        //         d.color  =  d.color;
+        //         d.weight = +d.weight;
+        //         d.score  = +d.score;
+        //         d.width  = +d.weight;
+        //         d.label  =  d.label;
+        //         var s = d.score*d.weight;
+        //         if(s>maxScore) maxScore = s;
+        //         if(s<minScore) minScore = s;
+        //     });
+        //     colorAxis.domain([minScore,maxScore]);
+        //
+        //     // for (var i = 0; i < data.score; i++) { console.log(data[i].id) }
+        //
+        //     var path = svg.selectAll(".solidArc")
+        //         .data(pie(data))
+        //         .enter().append("path")
+        //         .attr("fill", function(d) {
+        //             // return d3Color(d.data.order);
+        //             return colorbar[colorAxis(d.data.score * d.data.weight)];
+        //         })
+        //         .attr("class", "solidArc")
+        //         .attr("stroke", "gray")
+        //         .attr("d", arc)
+        //         .on('mouseover', tip.show)
+        //         .on('mouseout', tip.hide);
+        //
+        //     // calculate the weighted mean score
+        //     var score =
+        //         data.reduce(function(a, b) {
+        //             //console.log('a:' + a + ', b.score: ' + b.score + ', b.weight: ' + b.weight);
+        //             return a + (b.score * b.weight);
+        //         },0);
+        //
+        //     svg.append("svg:text")
+        //         .attr("class", "aster-score")
+        //         .attr("dy", ".35em")
+        //         .attr("text-anchor", "middle") // text-align: right
+        //         .text(score);
+        //
+        // });
 
         return idName;
     };
@@ -755,6 +755,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
     };
 
     service.isMapUpdate = false;
+    service.isUpdateODEvents =false;
 
 
 
@@ -971,14 +972,14 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
                         title: timeStr,
                         start: new Date(y, m, d, 0, 0),
                         end: new Date(y, m, d, 23, 59),
-                        backgroundColor: "#ffffff", //white
-                        borderColor:  "#ffffff" //white
+                        backgroundColor: "transparent", //white
+                        borderColor:  "transparent" //white
                 };
                 event.data = dataEvent;
                 events.push(event);
             });
             var weatherIconMap = [{weather: "多云", class: "wi wi-day-cloudy"},
-                {weather: "晴", class: "wi wi-sunny"},
+                {weather: "晴", class: "wi wi-day-sunny"},
                 {weather: "小雨", class: "wi wi-sprinkle"},
                 {weather: "阴", class: "wi wi-cloudy"},
                 {weather: "阴转多云", class: "wi wi-day-cloudy"},
@@ -997,7 +998,8 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
                     var weatherIcon = weatherIconMap.filter(function (w) {
                         return w.weather == weather;
                     });
-                    event[0].dataWeather = "<i class='" + weatherIcon[0].class + "'style='font-size:15px' >" + temperature + "</i>";
+                    event[0].dataWeather = "<i class='" + weatherIcon[0].class + "'style='font-size:15px' >&nbsp" + temperature + "&nbsp </i>";
+                    event[0].AQI = +e.AQI;
             });
 
             return events;
@@ -1015,8 +1017,6 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
             function(results) {
 
                 var events = createEvent(results);
-
-
                 deferred.resolve(events);
             },
             function(errors) {
@@ -1028,9 +1028,64 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
         return deferred.promise;
     };
-    service.fullcalendarEventRender = function(event){
 
+    service.callODEvents = function(){
+        if(!service.isUpdateODEvents) return;
+
+        var deferred = $q.defer();
+
+
+        var eventFiles = ["mbar/calendarData/20130101.csv",
+            "mbar/calendarData/20130102.csv",
+            "mbar/calendarData/20130103.csv",
+            "mbar/calendarData/20130104.csv",
+            "mbar/calendarData/20130105.csv",
+            "mbar/calendarData/20130106.csv",
+            "mbar/calendarData/20130107.csv",
+            "mbar/calendarData/20130108.csv",
+            "mbar/calendarData/20130109.csv",
+            "mbar/calendarData/20130110.csv",
+            "mbar/calendarData/20130111.csv",
+            "mbar/calendarData/20130112.csv",
+            "mbar/calendarData/20130113.csv",
+            "mbar/calendarData/20130114.csv",
+            "mbar/calendarData/20130115.csv",
+            "mbar/calendarData/20130116.csv",
+            "mbar/calendarData/20130117.csv",
+            "mbar/calendarData/20130121.csv",
+            "mbar/calendarData/20130122.csv",
+            "mbar/calendarData/20130126.csv",
+            "mbar/calendarData/20130129.csv",
+            "mbar/calendarData/weather.csv"
+        ];
+
+
+
+        var urlCalls = [];
+
+        angular.forEach(eventFiles, function(url,i) {
+            urlCalls.push($http.get(url,{cache:true}));
+        });
+
+        $q.all(urlCalls)
+            .then(
+                function(results) {
+
+                    var events = createEvent(results);
+                    deferred.resolve(events);
+                },
+                function(errors) {
+                    deferred.reject(errors);
+                },
+                function(updates) {
+                    deferred.update(updates);
+                });
+
+
+        service.isUpdateODEvents = false;
+        return deferred.promise;
     };
+
     
 
     return service;

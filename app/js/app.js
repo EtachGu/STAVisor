@@ -49,8 +49,11 @@ stavrApp.config(['$routeProvider',
       when('/ClusterAnalysis',{
         templateUrl: '../LinkingtoSlickGrid.html',
         controller: 'ClusterAnalyticsCtrl'
-
-
+      }).
+      when('/ODPattern',{
+        templateUrl:'../WeatherOD.html',
+        controller: 'CrossFilterCtrl',
+        css:'css/crossFilter.css'
       }).
       when('/EventsRelationVA',{
          templateUrl:'../EventsRelation.html',

@@ -1,221 +1,220 @@
-<link rel="stylesheet" type="text/css" href="lib/ALTE/daterangepicker/daterangepicker-bs3.css">
-<link href="css/mapLayers.css" rel="stylesheet">
+
 <div class="row">
     <section class="col-md-4 col-sm-4 connectedSortable">
 
-        <div class="box box-success">
-            <div class="box-header with-border">
-                <h3 class="box-title">ParaController</h3>
-                <div class="box-tools pull-right">
-                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
-                </div>
-            </div><!-- /.box-header -->
-            <div class="box-body">
-                <div class="nav-tabs-custom">
-                    <ul class="nav nav-tabs">
-                        <li class="active"><a href="#events" target="_self" data-toggle="tab">Events</a></li>
-                        <li><a href="#maplayers" target="_self" data-toggle="tab">Map</a></li>
-                        <li><a href="#time" target="_self"  data-toggle="tab">Time</a></li>
-                        <li><a href="#Relation" target="_self"  data-toggle="tab">Relations</a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="active tab-pane" id="events">
-                            <div style="position: relative; ">
-                                <div class="form-group">
-                                    <label for="EventsQuery">Events Type</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-flag"></i>
-                                        </div>
-                                        <select id="EventsQuery" class="form-control" ng-model="eventsType">
-                                            <option>Carries</option>
-                                            <option>Stop Events</option>
-                                            <option>Turn Events</option>
-                                            <option>Traffic Events</option>
-                                            <option>Low Speed Events</option>
-                                            <option><i class="fa fa-car">Add More Type</i></option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="TNumber">Car Number</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-car"></i>
-                                        </div>
-                                        <input type="text" class="form-control" id="TNumber" placeholder="AllCar" ng-model="selectedCars">
-                                    <span class="input-group-btn">
-                                        <button type="submit" name="search" id="search-btn" class="btn btn-flat" ng-click="showDataTable()"><i class="fa fa-search" ></i></button>
-                                    </span>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="SpatialArea">Spatial Area Filter</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-globe"></i>
-                                        </div>
-                                        <input type="text" class="form-control" id="SpatialArea" placeholder="All Area" ng-model="selectArea">
-                                    <span class="input-group-btn">
-                                        <button type="submit" name="search" id="searchSpatialArea" class="btn btn-flat" ng-click="showSpatialAreaTable()"><i class="fa fa-filter" ></i></button>
-                                    </span>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Date and time range</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-clock-o"></i>
-                                        </div>
-                                        <input type="text" class="form-control pull-right" id="reservationtime" placeholder="01/01/2013 12:00 AM - 02/28/2013 12:00 AM">
-                                    </div><!-- /.input group -->
-                                </div><!-- /.form group -->
+        <!--<div class="box box-success">-->
+            <!--<div class="box-header with-border">-->
+                <!--<h3 class="box-title">ParaController</h3>-->
+                <!--<div class="box-tools pull-right">-->
+                    <!--<button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>-->
+                <!--</div>-->
+            <!--</div>&lt;!&ndash; /.box-header &ndash;&gt;-->
+            <!--<div class="box-body">-->
+                <!--<div class="nav-tabs-custom">-->
+                    <!--<ul class="nav nav-tabs">-->
+                        <!--<li class="active"><a href="#events" target="_self" data-toggle="tab">Events</a></li>-->
+                        <!--<li><a href="#maplayers" target="_self" data-toggle="tab">Map</a></li>-->
+                        <!--<li><a href="#time" target="_self"  data-toggle="tab">Time</a></li>-->
+                        <!--<li><a href="#Relation" target="_self"  data-toggle="tab">Relations</a></li>-->
+                    <!--</ul>-->
+                    <!--<div class="tab-content">-->
+                        <!--<div class="active tab-pane" id="events">-->
+                            <!--<div style="position: relative; ">-->
+                                <!--<div class="form-group">-->
+                                    <!--<label for="EventsQuery">Events Type</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-flag"></i>-->
+                                        <!--</div>-->
+                                        <!--<select id="EventsQuery" class="form-control" ng-model="eventsType">-->
+                                            <!--<option>Carries</option>-->
+                                            <!--<option>Stop Events</option>-->
+                                            <!--<option>Turn Events</option>-->
+                                            <!--<option>Traffic Events</option>-->
+                                            <!--<option>Low Speed Events</option>-->
+                                            <!--<option><i class="fa fa-car">Add More Type</i></option>-->
+                                        <!--</select>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="form-group">-->
+                                    <!--<label for="TNumber">Car Number</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-car"></i>-->
+                                        <!--</div>-->
+                                        <!--<input type="text" class="form-control" id="TNumber" placeholder="AllCar" ng-model="selectedCars">-->
+                                    <!--<span class="input-group-btn">-->
+                                        <!--<button type="submit" name="search" id="search-btn" class="btn btn-flat" ng-click="showDataTable()"><i class="fa fa-search" ></i></button>-->
+                                    <!--</span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="form-group">-->
+                                    <!--<label for="SpatialArea">Spatial Area Filter</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-globe"></i>-->
+                                        <!--</div>-->
+                                        <!--<input type="text" class="form-control" id="SpatialArea" placeholder="All Area" ng-model="selectArea">-->
+                                    <!--<span class="input-group-btn">-->
+                                        <!--<button type="submit" name="search" id="searchSpatialArea" class="btn btn-flat" ng-click="showSpatialAreaTable()"><i class="fa fa-filter" ></i></button>-->
+                                    <!--</span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="form-group">-->
+                                    <!--<label>Date and time range</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-clock-o"></i>-->
+                                        <!--</div>-->
+                                        <!--<input type="text" class="form-control pull-right" id="reservationtime" placeholder="01/01/2013 12:00 AM - 02/28/2013 12:00 AM">-->
+                                    <!--</div>&lt;!&ndash; /.input group &ndash;&gt;-->
+                                <!--</div>&lt;!&ndash; /.form group &ndash;&gt;-->
 
-                                <button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>
-                                <button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>
-                            </div>
-                        </div><!-- /.tab-pane -->
+                                <!--<button type="submit" class="btn btn-primary" ng-click="queryClick()">Query</button>-->
+                                <!--<button type="submit" class="btn btn-primary pull-right" ng-click="ClearResult()">Clear</button>-->
+                            <!--</div>-->
+                        <!--</div>&lt;!&ndash; /.tab-pane &ndash;&gt;-->
 
-                        <div class="tab-pane" id="maplayers">
-                            <div style="position: relative;">
-                                <section class="map-layers">
-                                    <ul class="layers-set">
-                                        <li class="treeview">
-                                            <a href="">
-                                                <i class="fa fa-th-list"></i> <span>Layers</span> <i class="fa fa-angle-left pull-right"></i>
-                                            </a>
-                                            <ul class="layers-tree todo-list">
-                                                <li>
-                                                    <!-- checkbox -->
-                                                    <input type="checkbox" value="" name="">
-                                                    <!-- drag handle -->
-                                                <span class="handle">
-                                                    <i class="fa fa-map"></i>
-                                                </span>
-                                                    <!-- todo text -->
-                                                    <span class="text">Wuhan</span>
-                                                    <!-- General tools such as edit or delete-->
-                                                    <div class="tools">
-                                                        <i class="fa fa-edit" ng-click="mapLayerEdit()"></i>
-                                                        <i class="fa fa-trash-o"></i>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <input type="checkbox" value="" name="">
-                                                    <span class="handle">
-                                                    <i class="fa fa-car"></i>
-                                                    </span>
-                                                    <span class="text">Trajectory</span>
-                                                    <div class="tools">
-                                                        <i class="fa fa-edit"  ng-click="trajLayerEdit()"></i>
-                                                        <i class="fa fa-trash-o"></i>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </section>
-                                <!--<ul id="controlToggle">-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="none" id="noneToggle"-->
-                                               <!--ng-click="toggleControl(this);" checked="checked" />-->
-                                        <!--<label for="noneToggle">navigate</label>-->
-                                    <!--</li>-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="point" id="pointToggle"-->
-                                               <!--ng-click="toggleControl(this);" />-->
-                                        <!--<label for="pointToggle">draw point</label>-->
-                                    <!--</li>-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="line" id="lineToggle"-->
-                                               <!--ng-click="toggleControl(this);" />-->
-                                        <!--<label for="lineToggle">draw line</label>-->
-                                    <!--</li>-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="polygon" id="polygonToggle"-->
-                                               <!--ng-click="toggleControl(this);" />-->
-                                        <!--<label for="polygonToggle">draw polygon</label>-->
-                                    <!--</li>-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="selecthover" id="selecthoverToggle"-->
-                                               <!--ng-click="toggleControl(this);" />-->
-                                        <!--<label for="selecthoverToggle">Select features on hover</label>-->
-                                    <!--</li>-->
-                                    <!--<li>-->
-                                        <!--<input type="radio" name="type" value="select" id="selectToggle"-->
-                                               <!--ng-click="toggleControl(this);" />-->
-                                        <!--<label for="selectToggle">select feature (<span id="counter">0</span> features selected)</label>-->
-                                        <!--<ul>-->
-                                            <!--<li>-->
-                                                <!--<input id="box" type="checkbox" checked="checked"-->
-                                                       <!--name="box" ng-click="update()" />-->
-                                                <!--<label for="box">select features in a box</label>-->
-                                            <!--</li>-->
-                                            <!--<li>-->
-                                                <!--<input id="clickout" type="checkbox"-->
-                                                       <!--name="clickout" ng-click="update()" />-->
-                                                <!--<label for="clickout">click out to unselect features</label>-->
-                                            <!--</li>-->
-                                        <!--</ul>-->
-                                    <!--</li>-->
-                                <!--</ul>-->
-                            </div>
-                        </div><!-- /.tab-pane -->
+                        <!--<div class="tab-pane" id="maplayers">-->
+                            <!--<div style="position: relative;">-->
+                                <!--<section class="map-layers">-->
+                                    <!--<ul class="layers-set">-->
+                                        <!--<li class="treeview">-->
+                                            <!--<a href="">-->
+                                                <!--<i class="fa fa-th-list"></i> <span>Layers</span> <i class="fa fa-angle-left pull-right"></i>-->
+                                            <!--</a>-->
+                                            <!--<ul class="layers-tree todo-list">-->
+                                                <!--<li>-->
+                                                    <!--&lt;!&ndash; checkbox &ndash;&gt;-->
+                                                    <!--<input type="checkbox" value="" name="">-->
+                                                    <!--&lt;!&ndash; drag handle &ndash;&gt;-->
+                                                <!--<span class="handle">-->
+                                                    <!--<i class="fa fa-map"></i>-->
+                                                <!--</span>-->
+                                                    <!--&lt;!&ndash; todo text &ndash;&gt;-->
+                                                    <!--<span class="text">Wuhan</span>-->
+                                                    <!--&lt;!&ndash; General tools such as edit or delete&ndash;&gt;-->
+                                                    <!--<div class="tools">-->
+                                                        <!--<i class="fa fa-edit" ng-click="mapLayerEdit()"></i>-->
+                                                        <!--<i class="fa fa-trash-o"></i>-->
+                                                    <!--</div>-->
+                                                <!--</li>-->
+                                                <!--<li>-->
+                                                    <!--<input type="checkbox" value="" name="">-->
+                                                    <!--<span class="handle">-->
+                                                    <!--<i class="fa fa-car"></i>-->
+                                                    <!--</span>-->
+                                                    <!--<span class="text">Trajectory</span>-->
+                                                    <!--<div class="tools">-->
+                                                        <!--<i class="fa fa-edit"  ng-click="trajLayerEdit()"></i>-->
+                                                        <!--<i class="fa fa-trash-o"></i>-->
+                                                    <!--</div>-->
+                                                <!--</li>-->
+                                            <!--</ul>-->
+                                        <!--</li>-->
+                                    <!--</ul>-->
+                                <!--</section>-->
+                                <!--&lt;!&ndash;<ul id="controlToggle">&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="none" id="noneToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" checked="checked" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="noneToggle">navigate</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="point" id="pointToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="pointToggle">draw point</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="line" id="lineToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="lineToggle">draw line</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="polygon" id="polygonToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="polygonToggle">draw polygon</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="selecthover" id="selecthoverToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="selecthoverToggle">Select features on hover</label>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<input type="radio" name="type" value="select" id="selectToggle"&ndash;&gt;-->
+                                               <!--&lt;!&ndash;ng-click="toggleControl(this);" />&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<label for="selectToggle">select feature (<span id="counter">0</span> features selected)</label>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;<ul>&ndash;&gt;-->
+                                            <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                                <!--&lt;!&ndash;<input id="box" type="checkbox" checked="checked"&ndash;&gt;-->
+                                                       <!--&lt;!&ndash;name="box" ng-click="update()" />&ndash;&gt;-->
+                                                <!--&lt;!&ndash;<label for="box">select features in a box</label>&ndash;&gt;-->
+                                            <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                            <!--&lt;!&ndash;<li>&ndash;&gt;-->
+                                                <!--&lt;!&ndash;<input id="clickout" type="checkbox"&ndash;&gt;-->
+                                                       <!--&lt;!&ndash;name="clickout" ng-click="update()" />&ndash;&gt;-->
+                                                <!--&lt;!&ndash;<label for="clickout">click out to unselect features</label>&ndash;&gt;-->
+                                            <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                        <!--&lt;!&ndash;</ul>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;</li>&ndash;&gt;-->
+                                <!--&lt;!&ndash;</ul>&ndash;&gt;-->
+                            <!--</div>-->
+                        <!--</div>&lt;!&ndash; /.tab-pane &ndash;&gt;-->
 
-                        <div class="tab-pane" id="time">
-                            <div style="position: relative;">
-                                <div ng-click="timeControllerBind()">
-                                    <label>
-                                    <input type="checkbox" name="checkTime" id="cbBindTrajectory" checked> Bind to Trajectory
-                                </label>
-                                    <label>
-                                        <input type="checkbox" name="checkTime" id="cbBindEvents" checked> Bind to Events
-                                    </label>
-                                </div>
-                                <button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>
-                            </div>
-                        </div><!-- /.tab-pane -->
-                        <div class="tab-pane" id="Relation">
-                            <div style="position: relative;">
-                                <div class="form-group">
-                                    <label for="SpatialDis">Spatial Distance</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-flag"></i>
-                                        </div>
-                                        <input id="SpatialDis" type="text" class="form-control" placeholder="100 m" ng-model="spatialDistance">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="TempDis">Temporal Distance</label>
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-clock-o"></i>
-                                        </div>
-                                        <select id="TempDis" class="form-control" ng-model="tepmoralDistance">
-                                            <option>1 minute</option>
-                                            <option>5 minute</option>
-                                            <option>10 minute</option>
-                                            <option>30 minute</option>
-                                            <option>1 hour</option>
-                                            <option>1 day</option>
-                                            <option>1 week</option>
-                                            <option>1 month</option>
-                                            <option>1 year</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary" ng-click="executeRelation()">Execute</button>
-                            </div>
-                        </div><!-- /.tab-pane -->
+                        <!--<div class="tab-pane" id="time">-->
+                            <!--<div style="position: relative;">-->
+                                <!--<div ng-click="timeControllerBind()">-->
+                                    <!--<label>-->
+                                    <!--<input type="checkbox" name="checkTime" id="cbBindTrajectory" checked> Bind to Trajectory-->
+                                <!--</label>-->
+                                    <!--<label>-->
+                                        <!--<input type="checkbox" name="checkTime" id="cbBindEvents" checked> Bind to Events-->
+                                    <!--</label>-->
+                                <!--</div>-->
+                                <!--<button type="submit" class="btn btn-primary" ng-click="updateStackClick()">update</button>-->
+                            <!--</div>-->
+                        <!--</div>&lt;!&ndash; /.tab-pane &ndash;&gt;-->
+                        <!--<div class="tab-pane" id="Relation">-->
+                            <!--<div style="position: relative;">-->
+                                <!--<div class="form-group">-->
+                                    <!--<label for="SpatialDis">Spatial Distance</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-flag"></i>-->
+                                        <!--</div>-->
+                                        <!--<input id="SpatialDis" type="text" class="form-control" placeholder="100 m" ng-model="spatialDistance">-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="form-group">-->
+                                    <!--<label for="TempDis">Temporal Distance</label>-->
+                                    <!--<div class="input-group">-->
+                                        <!--<div class="input-group-addon">-->
+                                            <!--<i class="fa fa-clock-o"></i>-->
+                                        <!--</div>-->
+                                        <!--<select id="TempDis" class="form-control" ng-model="tepmoralDistance">-->
+                                            <!--<option>1 minute</option>-->
+                                            <!--<option>5 minute</option>-->
+                                            <!--<option>10 minute</option>-->
+                                            <!--<option>30 minute</option>-->
+                                            <!--<option>1 hour</option>-->
+                                            <!--<option>1 day</option>-->
+                                            <!--<option>1 week</option>-->
+                                            <!--<option>1 month</option>-->
+                                            <!--<option>1 year</option>-->
+                                        <!--</select>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<button type="submit" class="btn btn-primary" ng-click="executeRelation()">Execute</button>-->
+                            <!--</div>-->
+                        <!--</div>&lt;!&ndash; /.tab-pane &ndash;&gt;-->
 
-                    </div><!-- /.tab-content -->
-                </div><!-- /.nav-tabs-custom -->
+                    <!--</div>&lt;!&ndash; /.tab-content &ndash;&gt;-->
+                <!--</div>&lt;!&ndash; /.nav-tabs-custom &ndash;&gt;-->
 
-            </div><!-- /.box-body -->
+            <!--</div>&lt;!&ndash; /.box-body &ndash;&gt;-->
 
 
-        </div><!-- /.box -->
+        <!--</div>&lt;!&ndash; /.box &ndash;&gt;-->
 
         <div class="box table-responsive no-padding" my-selected-table="TableView" title="{{isSelectedDataTable}}" ng-click="tableViewClick()" >
 

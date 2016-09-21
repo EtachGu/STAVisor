@@ -398,9 +398,138 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                     },function(e){alert(e);});
 
+
+                    // ODLines
+                    {
+                        var map = MapViewerSever.map;
+                        var features = new Array();
+                        var coordinates = [[114.224955, 30.5929],[114.237216,30.610683],[114.269286,30.62176],[114.269286,30.62176],[114.300796,30.604683]];
+                        var transformedCoordinates = new Array();
+
+                        for (var i = 0; i < coordinates.length; ++i) {
+                            transformedCoordinates[i] = ol.proj.transform(coordinates[i], 'EPSG:4326', 'EPSG:3857');
+                            features[i] = new ol.Feature(new ol.geom.Point(transformedCoordinates[i]));
+                        }
+
+                        var source = new ol.source.Vector({
+                            features: features
+                        });
+
+                        var clusterSource = new ol.source.Cluster({
+                            distance: 40,
+                            source: source
+                        });
+
+                        var styleCache = {};
+                        var clusters = new ol.layer.Vector({
+                            source: clusterSource,
+                            style: function (feature, resolution) {
+                                var size = feature.get('features').length;
+                                var style = styleCache[size];
+                                if (!style) {
+                                    style = [new ol.style.Style({
+                                        image: new ol.style.Circle({
+                                            radius: 10,
+                                            stroke: new ol.style.Stroke({
+                                                color: '#fff'
+                                            }),
+                                            fill: new ol.style.Fill({
+                                                color: '#3399CC'
+                                            })
+                                        }),
+                                        text: new ol.style.Text({
+                                            text: size.toString(),
+                                            fill: new ol.style.Fill({
+                                                color: '#fff'
+                                            })
+                                        })
+                                    })];
+                                    styleCache[size] = style;
+                                }
+                                return style;
+                            }
+                        });
+
+                        map.addLayer(clusters);
+
+                        var vectorLine = new ol.source.Vector({});
+
+                        for (var i = 1; i < transformedCoordinates.length; i++) {
+                            var startPoint = transformedCoordinates[0];
+                            var endPoint = transformedCoordinates[i];
+                            var lineArray = [startPoint, endPoint];
+                            var featureLine = new ol.Feature({
+                                geometry: new ol.geom.LineString(lineArray)
+                            });
+
+                            var lineStyle = new ol.style.Style({
+                                fill: new ol.style.Fill({
+                                    color: '#00FF00',
+                                    weight: 4
+                                }),
+                                stroke: new ol.style.Stroke({
+                                    color: '#00FF00',
+                                    width: 2
+                                })
+                            });
+                            featureLine.setStyle(lineStyle);
+                            vectorLine.addFeature(featureLine);
+                            var firstPoint = coordinates[0];
+                            var secondPoint = coordinates[i];
+                            var slope = ((secondPoint[1] - firstPoint[1]) / (secondPoint[0] - firstPoint[0]));
+                            var angle = Math.atan(slope);
+                            var rotation;
+
+                            //Shifting the graph Origin to point of start point
+                            secondPoint[0] = secondPoint[0] - firstPoint[0];
+                            secondPoint[1] = secondPoint[1] - firstPoint[1];
+                            //Fourth quadrant
+                            if (secondPoint[0] > 0 && secondPoint[1] < 0) {
+                                rotation = (Math.PI / 2 - angle);
+                            }
+                            //Second quadrant
+                            else if (secondPoint[0] < 0 && secondPoint[1] > 0) {
+                                rotation = -(Math.PI / 2 + angle);
+                            }
+                            //Third quadrant
+                            else if (secondPoint[0] < 0 && secondPoint[1] < 0) {
+                                rotation = 3 * Math.PI / 2 - angle;
+                            }
+                            //First quadrant
+                            else if (secondPoint[0] > 0 && secondPoint[1] > 0) {
+                                rotation = angle;
+                            }
+                            var iconStyle = new ol.style.Style({
+                                image: new ol.style.Icon(({
+                                    anchorXUnits: 'fraction',
+                                    anchorYUnits: 'pixels',
+                                    opacity: 0.75,
+                                    src: 'img/arrow2.png',
+                                    rotation: rotation
+                                }))
+                            });
+                            var iconFeature = new ol.Feature({
+                                geometry: new ol.geom.Point(endPoint)
+                            });
+                            iconFeature.setStyle(iconStyle);
+                            vectorLine.addFeature(iconFeature);
+                        }
+                        var vectorLayer = new ol.layer.Vector({
+                            source: vectorLine
+                        });
+                        map.addLayer(vectorLayer);
+
+
+
+
+                    }
+
+
+
+
                 });
                 // add Marker
-                for(var i=0; i<1;i++)
+                for(var i=0; i<0;i++)
                 {
                     var markerId = StopEventlayerSever();
 
@@ -2246,7 +2375,7 @@ stavrDirts.directive('mySelectedTable',['$rootScope','ActiveDataFactory',functio
                     scope.selectTableView = $(tableElement).DataTable({
                         "paging": true,
                         "lengthChange": true,
-                        "searching": true,
+                        "searching": false,
                         "ordering": true,
                         "info": true,
                         "autoWidth": true,
@@ -2274,6 +2403,394 @@ stavrDirts.directive('mySelectedTable',['$rootScope','ActiveDataFactory',functio
     }
 }]);
 
+
+
+stavrDirts.directive('myFullCalendar',['$rootScope','ActiveDataFactory',function($rootScope,ActiveDataFactory){
+    return {
+        restrict : 'A',
+        transclude: false,
+        controller: function ($scope,$element,$transclude,$http) {
+
+        },
+        link:{
+            pre: function (tElement,tAttrs,transclude) {
+
+            },
+            post:function (scope,iElement,iAttrs,controller) {
+
+                var legendRect = [{color:"#c6dbef",value:"0~500"},
+                    {color:"#9ecae1",value:"500~1000"},
+                    {color:"#6baed6",value:"1000~1500"},
+                    {color:"#4292c6",value:"1500~2000"},
+                    {color:"#2171b5",value:"2000~2500"},
+                    {color:"#084594",value:"2500~3000"}
+                ];
+                var legendAQI = [
+                    {color:"#a7cf8c",value:"0~50    Excellent"},
+                    {color:"#f7da64",value:"51~100  Good"},
+                    {color:"#f29e39",value:"101~150 Light Polluted"},
+                    {color:"#da555d",value:"151~200 Moderately Polluted"},
+                    {color:"#b9377a",value:"201~300 Heavily Polluted"},
+                    {color:"#881326",value:">300   Severely Polluted"}
+                ];
+                iAttrs.$observe('myFullCalendar',function () {
+                    /* initialize the calendar
+                     -----------------------------------------------------------------*/
+                    //Date for the calendar events (dummy data)
+                    var start = $.fullCalendar.moment('2013-01-01');
+                    var date = new Date("2013-01-01");
+                    var d = date.getDate(),
+                        m = date.getMonth(),
+                        y = date.getFullYear();
+
+                    while(iElement.firstChild){
+                        iElement.removeChild(iElement.firstChild);
+                    }
+                    $(iElement).fullCalendar({
+                        header: {
+                            left: 'prev,next',
+                            center: 'title',
+                            right: 'month,basicWeek,agendaDay'
+                        },
+                        buttonText: {
+                            month: 'month',
+                            week: 'week',
+                            day: 'day'
+                        },
+                        //Random default events
+                        events: [],
+                        editable: true,
+                        defaultDate:start,
+                        eventRender:function(event,element){
+                            $(element).append().html("");
+                        },
+                        eventAfterRender:function(event,element,view){
+                            $(element).append().html("");
+
+                            var width = $(element).width() || 120;
+                            var height = $(element).height() || 60;
+                            var s = d3.select(document.createElement("div")).append("svg")
+                                .attr("height",height)
+                                .attr("width",width);
+                            var svg = s.append("g");
+                            var x = d3.scale.ordinal()
+                                .rangeRoundBands([0, width], .1);
+
+                            var y = d3.scale.linear()
+                                .range([height-10, 0]);
+
+                            var colorIndex = d3.scale.quantize().range([0,1,2,3,4,5]);
+                            colorIndex.domain([0,3000]);
+                            var colorAQIIndex = d3.scale.threshold().range([0,1,2,3,4,5]);
+                            colorAQIIndex.domain([51,101,151,201,301]);
+
+
+                            // var data =[{a:1,b:10},{a:2,b:20},{a:3,b:30},{a:4,b:15},
+                            //     {a:5,b:10},{a:6,b:20},{a:7,b:30},{a:8,b:15},
+                            //     {a:9,b:10},{a:10,b:20},{a:11,b:30},{a:12,b:15}];
+                            var data = event.data;
+
+                            var xFun = function(d) { return x(d.A); }
+                            var yFun = function(d) { return y(d.B); }
+                            var widthFun = function(){ return x.rangeBand();}
+                            var heightFun = function(d) { return height - y(d.B); }
+
+                            switch(view.intervalUnit){
+                                case "month": break;
+                                case "week":
+                                case "day":
+                                    x = d3.scale.ordinal()
+                                        .rangeRoundBands([0, height], .1);
+
+                                    y = d3.scale.linear()
+                                        .range([width-10, 0]);
+
+                                    heightFun = function(){ return x.rangeBand();}
+
+                                    widthFun = function(d) { return width - y(d.B); }
+
+                                    xFun = function(d) { return 0; }
+                                    yFun = function(d) { return x(d.A); }
+                            };
+
+                            x.domain(data.map(function(d) { return d.A; }));
+                            //y.domain([0, d3.max(data, function(d) { return d.B; })]);
+                            y.domain([0, 3000]);
+
+                            var tip = d3.tip()
+                                .attr('class', 'd3-tip')
+                                .offset([0, 0])
+                                .html(function(d) {
+                                    return "<span style='color:orangered'>" + d.B + "</span>";
+                                });
+
+                            svg.call(tip);
+                            svg.selectAll(".bar")
+                                .data(data)
+                                .enter().append("rect")
+                                .attr("class", "bar")
+                                .attr("x",xFun)
+                                .attr("width",widthFun)
+                                .attr("y",yFun)
+                                .attr("height",heightFun )
+                                .attr("fill",function(d,i){return legendRect[colorIndex(d.B)].color;})
+                                .on("mouseover",tip.show)
+                                .on("mouseout",tip.hide);
+
+
+
+                            $(element).append(s[0]);
+
+
+
+                            // update the Head Info
+
+                            var td = $(element).parent();
+                            var tr = td.parent();
+                            var indexD  = td.index();
+
+                            var tbody = tr.parent();
+                            var thead = tbody.siblings();
+                            var tr_h  = thead.children();
+                            var td_h  = tr_h.children()[indexD];
+                            var h_width = $(td_h).width() || 60;
+                            var h_height = $(td_h).height() || 30;
+                            $(td_h).prepend(event.dataWeather);
+                            $(td_h).css("background-color",legendAQI[colorAQIIndex(event.AQI)].color);
+                            $(td_h).css("color","white")
+
+
+
+                        },
+                    });
+
+                    ActiveDataFactory.callFullCalendarEvents().then(function (events) {
+                        $(iElement).fullCalendar('addEventSource',events);
+                        var counterPassengers = 0;
+                        events.forEach(function(e){
+                            for(var i=0;i<12;i++){
+                                counterPassengers += +e.data[i].B;
+                            }
+                        });
+
+                        scope.passengersNumber = addCommas(counterPassengers);
+                        console.log("passengers: "+ scope.passengersNumber);
+                    },function (data) {
+                        alert(data);
+                    });
+
+                });
+
+                var addCommas = function(nStr)
+                {
+                    nStr += '';
+                    var x = nStr.split('.');
+                    var x1 = x[0];
+                    var x2 = x.length > 1 ? '.' + x[1] : '';
+                    var rgx = /(\d+)(\d{3})/;
+                    while (rgx.test(x1)) {
+                        x1 = x1.replace(rgx, '$1' + ',' + '$2');
+                    }
+                    return x1 + x2;
+                }
+
+            }
+        }
+    }
+}]);
+
+
+stavrDirts.directive('myLegendInfo',['ActiveDataFactory',function (ActiveDataFactory) {
+    return {
+        restrict : 'A',
+        transclude: true,
+        controller: function ($scope,$element,$transclude,$http) {
+
+        },
+        link:{
+            pre: function (scope,iElement,iAttrs,controller) {
+
+            },
+            post:function (scope,iElement,iAttrs,controller) {
+                var legendRect = [{color:"#c6dbef",value:"0~500"},
+                    {color:"#9ecae1",value:"501~1000"},
+                    {color:"#6baed6",value:"1001~1500"},
+                    {color:"#4292c6",value:"1501~2000"},
+                    {color:"#2171b5",value:"2001~2500"},
+                    {color:"#084594",value:"2501~3000"}
+                ];
+                var legendAQI = [
+                    {color:"#a7cf8c",value:"0~50    Excellent"},
+                    {color:"#f7da64",value:"51~100  Good"},
+                    {color:"#f29e39",value:"101~150 Light Polluted"},
+                    {color:"#da555d",value:"151~200 Moderately Polluted"},
+                    {color:"#b9377a",value:"201~300 Heavily Polluted"},
+                    {color:"#881326",value:">300   Severely Polluted"}
+                ];
+                iAttrs.$observe("myLegendInfo",function(){
+
+                    var data = null;
+                    var type = iElement.attr('my-legend-info');
+                    switch (type){
+                        case "AQI":data = legendAQI;break;
+                        case "Passengers":data = legendRect;break;
+                        default :
+                    };
+
+                    var legendBox = {width:30,height:15,topMargin:5,rightMargin:5};
+
+                    //draw legend
+                    var quantize = d3.scale.quantile()
+                        .domain([100, 20000 ])
+                        .range(d3.range(5).map(function(i) { return "q" + i + "-5"; }));
+                    d3.select(iElement[0]).selectAll("svg").remove();
+                    var svg = d3.select(iElement[0]).append("svg");
+
+                    var svgg = svg.append("g")
+                        .attr("transform", "translate(20,20)");
+
+                    var cell = svgg.selectAll(".legendCell")
+                        .data(data).enter().append("g")
+                        .attr("class","legendCell")
+                        .attr("transform",function (d,i) {
+                            return "translate(0," + i*(legendBox.height+legendBox.topMargin) + ")";
+                        });
+
+                    cell.append("rect")
+                        .attr("class", "legendCell")
+                        .attr("fill",function(d){return d.color;})
+                        .attr("width",legendBox.width)
+                        .attr("height",legendBox.height );
+
+                    cell.append("text")
+                        .attr("class",".legendCellText")
+                        .attr("x",function(d,i){return legendBox.width+legendBox.rightMargin; })
+                        .attr("y",legendBox.height/2)
+                        .attr("width",legendBox.width)
+                        .attr("height",legendBox.height )
+                        .text(function (d) {
+                            return d.value;
+                        });
+                });
+
+
+
+                
+            }
+        }
+    }
+}]);
+
+//lineChart
+stavrDirts.directive('myLinesChart',['ActiveDataFactory',function (ActiveDataFactory) {
+    return {
+        restrict : 'A',
+        transclude: true,
+        controller: function ($scope,$element,$transclude,$http) {
+
+        },
+        link:{
+            pre: function (scope,iElement,iAttrs,controller) {
+
+            },
+            post:function (scope,iElement,iAttrs,controller) {
+
+                iAttrs.$observe("myLinesChart",function() {
+
+                    var data = null;
+                    var type = iElement.attr('my-lines-chart');
+
+                    var margin = {top: 30, right: 50, bottom: 30, left: 30},
+                        width = iElement.width() - margin.left - margin.right,
+                        height =iElement.height() || iElement.width() - margin.top - margin.bottom;
+                    var parseDate = d3.time.format("%Y/%m/%d").parse;
+
+                    var x = d3.time.scale().range([0, width]);
+                    var y0 = d3.scale.linear().range([height, 0]);
+                    var y1 = d3.scale.linear().range([height, 0]);
+
+                    var xAxis = d3.svg.axis().scale(x)
+                        .orient("bottom").ticks(5);
+
+                    var yAxisLeft = d3.svg.axis().scale(y0)
+                        .orient("left").ticks(5);
+
+                    var yAxisRight = d3.svg.axis().scale(y1)
+                        .orient("right").ticks(5);
+
+                    var valueline = d3.svg.line()
+                        .x(function(d) { return x(d.date); })
+                        .y(function(d) { return y0(d.AQI); });
+
+                    var valueline2 = d3.svg.line()
+                        .x(function(d) { return x(d.date); })
+                        .y(function(d) { return y1(d.Passengers); });
+
+                    var svg = d3.select(iElement[0])
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform",
+                            "translate(" + margin.left + "," + margin.top + ")");
+
+                    // Get the data
+                    d3.csv("mbar/calendarData/everyday.csv", function(error, data) {
+                        data.forEach(function(d) {
+                            d.date = parseDate(d.date);
+                            d.AQI = +d.AQI;
+                            d.Passengers = +d.Passengers;
+                        });
+
+                        // Scale the range of the data
+                        x.domain(d3.extent(data, function(d) { return d.date; }));
+                        y0.domain([0, d3.max(data, function(d) {
+                            return Math.max(d.AQI); })]);
+                        y1.domain([0, d3.max(data, function(d) {
+                            return Math.max(d.Passengers); })]);
+
+                        svg.append("path")        // Add the valueline path.
+                            .attr("class","line")
+                            .style("stroke", "orange")
+                            .attr("d", valueline(data));
+
+                        svg.append("path")        // Add the valueline2 path.
+                            .attr("class","line")
+                            .attr("d", valueline2(data));
+
+                        svg.append("g")            // Add the X Axis
+                            .attr("class", "x axis")
+                            .attr("transform", "translate(0," + height + ")")
+                            .call(xAxis);
+
+                        svg.append("g")
+                            .attr("class", "y axis")
+                            .style("fill", "orange")
+                            .call(yAxisLeft)
+                            .append("text")
+                            .attr("y", -10)
+                            .attr("x", -10)
+                            .attr("dy", ".71em")
+                            .style("text-anchor", "end")
+                            .text("AQI");
+
+                        svg.append("g")
+                            .attr("class", "y axis")
+                            .attr("transform", "translate(" + width + " ,0)")
+                            .style("fill", "steelblue")
+                            .call(yAxisRight)
+                            .append("text")
+                            .attr("y", -10)
+                            .attr("x", 10)
+                            .attr("dy", ".71em")
+                            .style("text-anchor", "end")
+                            .text("Passengers");
+                    });
+                });
+            }
+        }
+    }
+}]);
 
 
 // stavrDirts.directive('mySideLayout',function () {

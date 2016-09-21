@@ -24,12 +24,195 @@ stavrCtrl.controller('PhoneDetailCtrl', ['$scope', '$routeParams', 'Phone',
 
 
 
+/*
+ *   control the main side bar
+ */
+stavrCtrl.controller('mainSideBarCtrl',['$rootScope','$scope','$uibModal','$log',function($rootScope,$scope, $uibModal, $log){
+    $scope.visualToolChoose = function(t){
+        switch (t){
+            case 'Line': callModalFun();
+                break;
+            default:
+
+        }
+    }
+
+    $scope.items = ['item1', 'item2', 'item3'];
+
+    $scope.animationsEnabled = true;
+
+    var callModalFun = function (templateUrlHtml,size) {
+
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/visualtoolhtml/visualtool.html',
+            controller: 'ModalInstanceCtrl',
+            size: 'lg',
+            resolve: {
+                items: function () {
+                    return $scope.items;
+                }
+            }
+        });
+
+        // modalInstance.result.then(function (selectedItem) {
+        //     $scope.selected = selectedItem;
+        // }, function () {
+        //     $log.info('Modal dismissed at: ' + new Date());
+        // });
+    };
 
 
-stavrCtrl.controller('ContentCtrl',['$scope','$routeParams',function($scope,$routeParams){
-    $scope.$on('updateData',function(evt, data){
+    $scope.view2Click = function () {
+        //Handle sidebar to collapse
+        if (!( $("body").hasClass('sidebar-collapse') || $("body").hasClass('sidebar-open') ) ) {
+            var naviBtn = document.getElementById("btnSideBar");
+            naviBtn.click();
+        }
+    }
 
+    $scope.toggleParaController = function () {
+        $rootScope.$broadcast("updateParaControllerView");
+    };
+
+}]);
+
+stavrCtrl.controller('ContentCtrl',['$scope','$uibModal','ActiveDataFactory',function($scope,$uibModal,ActiveDataFactory) {
+
+// control the update of views
+
+    $scope.isSelectedDataTable = false;
+    $scope.isUpdateMapView = false;
+    $scope.isUpdateRelationView = false;
+    $scope.isUpdateTimeView = false;
+    $scope.isUpdateStackView = false;
+
+    $scope.selectedStartDate = "2013-01-01";
+    $scope.selectedEndDate = "2013-02-28";
+
+    $scope.isVisibleParaController = "none";
+    $("#paraControllerCol").removeClass();
+    $("#viewCol").removeClass().addClass("col-md-12");
+    $scope.$on("updateParaControllerView",function(){
+        var state = $scope.isVisibleParaController ;
+        if(state=="none"){
+            $scope.isVisibleParaController = "display";
+            $("#paraControllerCol").removeClass().addClass("col-md-4");
+            $("#viewCol").removeClass().addClass("col-md-8");
+        }
+        else if(state=="display"){
+            $scope.isVisibleParaController = "none";
+            $("#paraControllerCol").removeClass();
+            $("#viewCol").removeClass().addClass("col-md-12");
+        }
     });
+
+
+    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment($scope.selectedStartDate),
+        endDate: moment($scope.selectedEndDate)}, function (start, end) {
+        // window.alert("You chose: " + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+
+        $scope.selectedStartDate = start.format('YYYY-MM-DD');
+        $scope.selectedEndDate = end.format('YYYY-MM-DD');
+    });
+
+    /*
+     *
+     */
+    $scope.mapLayerEdit = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/mapLayerEdit/mapLayerEdit.html',
+            controller: 'MapLayerMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+    /*
+     *
+     */
+    $scope.trajLayerEdit = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/mapLayerEdit/trajectoryLayerEdit.html',
+            controller: 'TrajectoryLayerMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+
+    $scope.showDataTable = function () {
+        var modalInstance = $uibModal.open({
+            animation: true,
+            templateUrl: 'template/dataTable/carDataTable.html',
+            controller: 'CarDataTableMICtrl',
+            size: 'lg',
+            resolve: {}
+        });
+    };
+
+
+    $scope.$on('updateSelectData',function () {
+        $scope.selectedCars = ActiveDataFactory.getSelectDataCarNumberStr();
+    });
+
+    // Select Spatial Area
+    $scope.showSpatialAreaTable = function () {
+
+    }
+
+
+    $scope.queryClick = function(){
+        ActiveDataFactory.setEventsType($scope.eventsType);
+        ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+
+        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        $scope.isUpdateStackView = !$scope.isUpdateStackView;
+
+    };
+
+
+    $scope.ClearResult = function () {
+
+        MapViewerSever.trajectoryFeatures.clear();
+        ActiveDataFactory.clearActiveData();
+
+        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        $scope.isUpdateStackView = !$scope.isUpdateStackView;
+    };
+
+
+    // relations execute
+    $scope.spatialDistance = 100;
+    $scope.tepmoralDistance = "1 hour";
+    $scope.executeRelation = function () {
+        console.log($scope.spatialDistance);
+        console.log($scope.tepmoralDistance);
+
+        ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
+
+        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+
+
+    };
+
+
+    //time
+    $scope.isBind2Trajectory = true;
+    $scope.isBind2Events = true;
+    $scope.timeControllerBind = function () {
+        $scope.isBind2Trajectory = document.getElementById("cbBindTrajectory").checked;
+        $scope.isBind2Events = document.getElementById("cbBindEvents").checked;
+    }
 }]);
 
 
@@ -60,134 +243,13 @@ stavrCtrl.controller('View1Ctrl',['$scope','$routeParams','ActiveDataFactory',fu
     $scope.selectedStartDate = "2013-01-01";
     $scope.selectedEndDate = "2013-02-28";
 
-    /* initialize the calendar
-     -----------------------------------------------------------------*/
-    //Date for the calendar events (dummy data)
-    var start = $.fullCalendar.moment('2013-01-01');
-    var date = new Date("2013-01-01");
-    var d = date.getDate(),
-        m = date.getMonth(),
-        y = date.getFullYear();
-
-    $('#calendar').fullCalendar({
-        header: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'month,basicWeek,agendaDay'
-        },
-        buttonText: {
-            today: 'today',
-            month: 'month',
-            week: 'week',
-            day: 'day'
-        },
-        //Random default events
-        events: [],
-        editable: true,
-        defaultDate:start,
-        eventRender:function(event,element){
-            $(element).append().html("");
-        },
-        eventAfterRender:function(event,element,view){
-            $(element).append().html("");
-
-            var width = $(element).width() || 120;
-            var height = $(element).height() || 60;
-            var s = d3.select(document.createElement("div")).append("svg")
-                       .attr("height",height)
-                       .attr("width",width);
-            var svg = s.append("g");
-            var x = d3.scale.ordinal()
-                .rangeRoundBands([0, width], .1);
-
-            var y = d3.scale.linear()
-                .range([height-10, 0]);
-
-            var xFun = function(d) { return x(d.a); }
-            var yFun = function(d) { return y(d.b); }
-            var widthFun = function(){ return x.rangeBand();}
-            var heightFun = function(d) { return height - y(d.b); }
-
-            switch(view.intervalUnit){
-                case "month": break;
-                case "week":
-                case "day":
-                    x = d3.scale.ordinal()
-                        .rangeRoundBands([0, height], .1);
-
-                    y = d3.scale.linear()
-                        .range([width-10, 0]);
-
-                    heightFun = function(){ return x.rangeBand();}
-
-                    widthFun = function(d) { return width - y(d.b); }
-
-                    xFun = function(d) { return 0; }
-                    yFun = function(d) { return x(d.a); }
-            };
-
-
-
-            var data =[{a:1,b:10},{a:2,b:20},{a:3,b:30},{a:4,b:15},
-                {a:5,b:10},{a:6,b:20},{a:7,b:30},{a:8,b:15},
-                {a:9,b:10},{a:10,b:20},{a:11,b:30},{a:12,b:15}];
-
-            x.domain(data.map(function(d) { return d.a; }));
-            y.domain([0, d3.max(data, function(d) { return d.b; })]);
-
-            var tip = d3.tip()
-                .attr('class', 'd3-tip')
-                .offset([0, 0])
-                .html(function(d) {
-                    return "<span style='color:orangered'>" + d.b + "</span>";
-                });
-
-            svg.call(tip);
-            svg.selectAll(".bar")
-                .data(data)
-                .enter().append("rect")
-                .attr("class", "bar")
-                .attr("x",xFun)
-                .attr("width",widthFun)
-                .attr("y",yFun)
-                .attr("height",heightFun )
-                .on("mouseover",tip.show)
-                .on("mouseout",tip.hide);
-
-
-
-            $(element).append(s[0]);
-
-
-
-            // update the Head Info
-
-            var td = $(element).parent();
-            var tr = td.parent();
-            var indexD  = td.index();
-
-            var tbody = tr.parent();
-            var thead = tbody.siblings();
-            var tr_h  = thead.children();
-            var td_h  = tr_h.children()[indexD];
-            var h_width = $(td_h).width() || 60;
-            var h_height = $(td_h).height() || 30;
-            $(td_h).prepend(event.dataWeather);
-
-
-
-        },
-    });
-
-    ActiveDataFactory.callFullCalendarEvents().then(function (events) {
-        $('#calendar').fullCalendar('addEventSource',events);
-    },function (data) {
-        alert(data);
-    });
-
+    $scope.passengersNumber = 0;
 
 
     $scope.isSelectedDataTable = false;
+   
+    
+    
     $scope.queryClick = function(){
         var tID = "";
         var tOwner = "";
@@ -261,54 +323,7 @@ stavrCtrl.controller('View2Ctrl',['$scope','$routeParams',function($scope,$route
 
 }]);
 
-/*
- *   control the main side bar 
- */
-stavrCtrl.controller('mainSideBarCtrl',['$scope','$uibModal','$log',function($scope, $uibModal, $log){
-    $scope.visualToolChoose = function(t){
-        switch (t){
-            case 'Line': callModalFun();
-                break;
-            default:
 
-        }
-    }
-
-    $scope.items = ['item1', 'item2', 'item3'];
-
-    $scope.animationsEnabled = true;
-
-    var callModalFun = function (templateUrlHtml,size) {
-
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: 'template/visualtoolhtml/visualtool.html',
-            controller: 'ModalInstanceCtrl',
-            size: 'lg',
-            resolve: {
-                items: function () {
-                    return $scope.items;
-                }
-            }
-        });
-
-        // modalInstance.result.then(function (selectedItem) {
-        //     $scope.selected = selectedItem;
-        // }, function () {
-        //     $log.info('Modal dismissed at: ' + new Date());
-        // });
-    };
-
-
-    $scope.view2Click = function () {
-        //Handle sidebar to collapse
-        if (!( $("body").hasClass('sidebar-collapse') || $("body").hasClass('sidebar-open') ) ) {
-            var naviBtn = document.getElementById("btnSideBar");
-            naviBtn.click();
-        }
-    }
-
-}]);
 
 stavrCtrl.controller('MapCtrl',['$scope','MapViewerSever','StopEventlayerSever',function ($scope,MapViewerSever,StopEventlayerSever) {
 
@@ -2461,17 +2476,17 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
         zIndex: 999999
     });
     $(".connectedSortable .box-header, .connectedSortable .nav-tabs-custom").css("cursor", "move");
-
+    //
     // control the update of views
-
-    $scope.isSelectedDataTable = false;
-    $scope.isUpdateMapView = false;
-    $scope.isUpdateRelationView = false;
-    $scope.isUpdateTimeView = false;
-    $scope.isUpdateStackView = false;
-
-    // response the click on tableView
-    // response the click on tableView
+    //
+    // $scope.isSelectedDataTable = false;
+    // $scope.isUpdateMapView = false;
+    // $scope.isUpdateRelationView = false;
+    // $scope.isUpdateTimeView = false;
+    // $scope.isUpdateStackView = false;
+    //
+    // // response the click on tableView
+    // //response the click on tableView
     $scope.tableViewClick = function () {
         if($scope.selectTableView){
             var selectedData = $scope.selectTableView.rows('.active').data();
@@ -2479,115 +2494,118 @@ stavrCtrl.controller('EventsRelationVACtrl',['$scope','$rootScope','$uibModal','
             else MapViewerSever.selectTrajectoryFeatures("");
         }
     };
+    //
+    // $scope.selectedStartDate = "2013-01-01";
+    // $scope.selectedEndDate = "2013-02-28";
+    //
+    // $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment($scope.selectedStartDate),
+    //     endDate: moment($scope.selectedEndDate)}, function (start, end) {
+    //     // window.alert("You chose: " + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    //
+    //     $scope.selectedStartDate = start.format('YYYY-MM-DD');
+    //     $scope.selectedEndDate = end.format('YYYY-MM-DD');
+    // });
+    //
+    //
+    // /*
+    //  *
+    //  */
+    //
+    // $scope.mapLayerEdit = function () {
+    //     var modalInstance = $uibModal.open({
+    //         animation: true,
+    //         templateUrl: 'template/mapLayerEdit/mapLayerEdit.html',
+    //         controller: 'MapLayerMICtrl',
+    //         size: 'lg',
+    //         resolve: {}
+    //     });
+    // };
+    //
+    // /*
+    //  *
+    //  */
+    // $scope.trajLayerEdit = function () {
+    //     var modalInstance = $uibModal.open({
+    //         animation: true,
+    //         templateUrl: 'template/mapLayerEdit/trajectoryLayerEdit.html',
+    //         controller: 'TrajectoryLayerMICtrl',
+    //         size: 'lg',
+    //         resolve: {}
+    //     });
+    // };
+    //
+    //
+    // $scope.showDataTable = function () {
+    //     var modalInstance = $uibModal.open({
+    //         animation: true,
+    //         templateUrl: 'template/dataTable/carDataTable.html',
+    //         controller: 'CarDataTableMICtrl',
+    //         size: 'lg',
+    //         resolve: {}
+    //     });
+    // };
+    //
+    //
+    // $scope.$on('updateSelectData',function () {
+    //     $scope.selectedCars = ActiveDataFactory.getSelectDataCarNumberStr();
+    // });
+    //
+    // // Select Spatial Area
+    // $scope.showSpatialAreaTable = function () {
+    //
+    // }
+    //
+    //
+    // $scope.queryClick = function(){
+    //     ActiveDataFactory.setEventsType($scope.eventsType);
+    //     ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
+    //
+    //     $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+    //     $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+    //     $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+    //     $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+    //     $scope.isUpdateStackView = !$scope.isUpdateStackView;
+    //
+    // };
+    //
+    //
+    // $scope.ClearResult = function () {
+    //
+    //     MapViewerSever.trajectoryFeatures.clear();
+    //     ActiveDataFactory.clearActiveData();
+    //
+    //     $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+    //     $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+    //     $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+    //     $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+    //     $scope.isUpdateStackView = !$scope.isUpdateStackView;
+    // };
+    //
+    //
+    // // relations execute
+    // $scope.spatialDistance = 100;
+    // $scope.tepmoralDistance = "1 hour";
+    // $scope.executeRelation = function () {
+    //     console.log($scope.spatialDistance);
+    //     console.log($scope.tepmoralDistance);
+    //
+    //     ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
+    //
+    //     $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+    //     $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+    //
+    //
+    // };
+    //
+    //
+    // //time
+    // $scope.isBind2Trajectory = true;
+    // $scope.isBind2Events = true;
+    // $scope.timeControllerBind = function () {
+    //     $scope.isBind2Trajectory = document.getElementById("cbBindTrajectory").checked;
+    //     $scope.isBind2Events = document.getElementById("cbBindEvents").checked;
+    // }
 
-    $scope.selectedStartDate = "2013-01-01";
-    $scope.selectedEndDate = "2013-02-28";
-
-    $('#reservationtime').daterangepicker({timePicker: true, timePickerIncrement: 30, format: 'MM/DD/YYYY h:mm A',startDate: moment($scope.selectedStartDate),
-        endDate: moment($scope.selectedEndDate)}, function (start, end) {
-        // window.alert("You chose: " + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-
-        $scope.selectedStartDate = start.format('YYYY-MM-DD');
-        $scope.selectedEndDate = end.format('YYYY-MM-DD');
-    });
-
-    /*
-     *
-     */
-    $scope.mapLayerEdit = function () {
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: 'template/mapLayerEdit/mapLayerEdit.html',
-            controller: 'MapLayerMICtrl',
-            size: 'lg',
-            resolve: {}
-        });
-    };
-
-    /*
-     *
-     */
-    $scope.trajLayerEdit = function () {
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: 'template/mapLayerEdit/trajectoryLayerEdit.html',
-            controller: 'TrajectoryLayerMICtrl',
-            size: 'lg',
-            resolve: {}
-        });
-    };
-
-
-    $scope.showDataTable = function () {
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: 'template/dataTable/carDataTable.html',
-            controller: 'CarDataTableMICtrl',
-            size: 'lg',
-            resolve: {}
-        });
-    };
-
-
-    $scope.$on('updateSelectData',function () {
-        $scope.selectedCars = ActiveDataFactory.getSelectDataCarNumberStr();
-    });
-    
-    // Select Spatial Area
-    $scope.showSpatialAreaTable = function () {
-
-    }
-
-
-    $scope.queryClick = function(){
-        ActiveDataFactory.setEventsType($scope.eventsType);
-        ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
-
-        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
-        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
-        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
-        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
-        $scope.isUpdateStackView = !$scope.isUpdateStackView;
-
-    };
-
-
-    $scope.ClearResult = function () {
-
-        MapViewerSever.trajectoryFeatures.clear();
-        ActiveDataFactory.clearActiveData();
-
-        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
-        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
-        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
-        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
-        $scope.isUpdateStackView = !$scope.isUpdateStackView;
-    };
-
-
-    // relations execute
-    $scope.spatialDistance = 100;
-    $scope.tepmoralDistance = "1 hour";
-    $scope.executeRelation = function () {
-        console.log($scope.spatialDistance);
-        console.log($scope.tepmoralDistance);
-
-        ActiveDataFactory.setRelationParameter($scope.spatialDistance,$scope.tepmoralDistance);
-
-        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
-        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
-
-
-    };
-
-
-    //time
-    $scope.isBind2Trajectory = true;
-    $scope.isBind2Events = true;
-    $scope.timeControllerBind = function () {
-        $scope.isBind2Trajectory = document.getElementById("cbBindTrajectory").checked;
-        $scope.isBind2Events = document.getElementById("cbBindEvents").checked;
-    }
 
 
 }]);

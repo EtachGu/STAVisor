@@ -68,8 +68,7 @@ text.active {
 
 .bar {
     fill-opacity:.9;
-    fill:steelblue;
-
+    /*fill:steelblue;*/
 }
 .bar:hover {
     fill: orangered;
