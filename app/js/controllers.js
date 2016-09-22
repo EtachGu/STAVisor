@@ -23,7 +23,6 @@ stavrCtrl.controller('PhoneDetailCtrl', ['$scope', '$routeParams', 'Phone',
 
 
 
-
 /*
  *   control the main side bar
  */
@@ -168,13 +167,24 @@ stavrCtrl.controller('ContentCtrl',['$scope','$uibModal','ActiveDataFactory',fun
         ActiveDataFactory.setEventsType($scope.eventsType);   //contains the MapUpdateEvents
         ActiveDataFactory.setDateRange($scope.selectedStartDate,$scope.selectedEndDate);
 
+        var eventsType = ActiveDataFactory.eventsType;
+        if(ActiveDataFactory.isSelectDataExist()){
+            ActiveDataFactory.callEventData().then(function(data){
 
-        $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
-        $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
-        $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
-        $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
-        
-        $scope.isUpdateStackView = !$scope.isUpdateStackView;
+                var result ={data:data,eventsType:eventsType};
+
+                $scope.$broadcast("updateEventsQuery",result);
+
+            },function(e){alert(e);});
+        }
+
+        //
+        // $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
+        // $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
+        // $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
+        // $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        //
+        // $scope.isUpdateStackView = !$scope.isUpdateStackView;
 
     };
 

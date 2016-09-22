@@ -665,6 +665,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
             var url= "";
             switch (service.eventsType){
+                case "Trajectory":url="";break;
                 case "OD Pattern":url="mbar/ODData.csv";break;
                 case "Carries": url = "http://localhost:8080/DataVisualor/ODEventServletJson2?"+
                     "TID=&"+
@@ -1098,7 +1099,13 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
         return deferred.promise;
     };
 
-    
+
+
+    //Three Views dataService
+    service.mapViewEventData ={};
+    service.timeViewEventData = {};
+    service.graphViewEventData = {};
+
 
     return service;
 

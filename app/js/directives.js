@@ -136,7 +136,14 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
            
             $scope.$on("clearTrajectoryFeatures",function(){
                 MapViewerSever.trajectoryFeatures.clear();
-            })
+            });
+
+            $scope.$on("updateEventsQuery",function (evt, data) {
+                $scope.eventsType = data.eventsType;
+                $scope.data = data.data;
+                $scope.isUpdateMapView = !$scope.isUpdateMapView;
+            });
+
         },
         link:{
             pre: function (scope,iElement,iAttrs,controller) {
@@ -442,7 +449,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                         for (var i = 0; i < district.length; ++i) {
                             var coord = district[i].coordinate;
                             transformedCoordinates[i] = ol.proj.transform(coord, 'EPSG:4326', 'EPSG:3857');
-                           // features[i] = new ol.Feature(new ol.geom.Point(transformedCoordinates[i]));
+                            features[i] = new ol.Feature(new ol.geom.Point(transformedCoordinates[i]));
                             district[i].coordinate = transformedCoordinates[i];
                         }
 
@@ -469,7 +476,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                         var pointRadiusLevel =  d3.scale.threshold().domain([10,100,900,2000]).range([2,10,15,24]);
                         for(var i=0;i<features.length;i++){
-                            features[i] = new ol.Feature(new ol.geom.Point(district[i].coordinate));
+                           // features[i] = new ol.Feature(new ol.geom.Point(district[i].coordinate));
                             features[i].set("count",district[i].count);
 
                         }
@@ -493,7 +500,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                 if (!style) {
                                     style = [new ol.style.Style({
                                         image: new ol.style.Circle({
-                                            radius:pointRadiusLevel(feature.get('features')[0].get("count")),
+                                            radius:10,//pointRadiusLevel(feature.get('features')[0].get("count")),
                                             stroke: new ol.style.Stroke({
                                                 color: '#fff'
                                             }),
@@ -589,6 +596,17 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
 
 
+                    }
+
+                    var eventType = scope.eventsType;
+                    switch (eventType){
+                        case "Trajectory":
+                        case "OD Pattern":updateMapWithODdataFun(scope.data);break;
+                        case "Carries":
+                        case "Stop Events":updateMapWithPointEvent(scope.data);break;
+                        case "Turn Events":
+                        case "Traffic Events":
+                        case "Low Speed Events":
                     }
 
 
@@ -744,107 +762,217 @@ stavrDirts.directive('myDayHourHeatmap',['$compile','ActiveDataFactory',function
                      renderColor();
                      });*/
 
-                    ActiveDataFactory.callEventData().then(function (data) {
-                        var dataObj = JSON.parse(data);
-                        var matrixData = [];
-                        if (dataObj.length <= 0) return;
-                        for (var k = 0; k < dataObj.length; k++) {
-                            var eventArr = dataObj[k].data.Events;
+                    // ActiveDataFactory.callEventData().then(function (data) {
+                    //     var dataObj = JSON.parse(data);
+                    //     var matrixData = [];
+                    //     if (dataObj.length <= 0) return;
+                    //     for (var k = 0; k < dataObj.length; k++) {
+                    //         var eventArr = dataObj[k].data.Events;
+                    //
+                    //         for (var i = 0; i < eventArr.length; i++) {
+                    //             var dateStr = Number(eventArr[i].time + '000');
+                    //             var date = new Date(dateStr);
+                    //             var hour = date.getHours();
+                    //
+                    //             var dateS = date.toDateString();
+                    //             var dateUnit = new Date(dateS);
+                    //             dateUnit.setHours(hour);
+                    //
+                    //             var itemDate = matrixData.find(function (e) {
+                    //                 return e.date.getTime() == dateUnit.getTime();
+                    //             });
+                    //             if (itemDate) {
+                    //                 itemDate.value += 1;
+                    //             }
+                    //             else {
+                    //                 for(var j=0;j<24;j++){
+                    //                     var dateU = new Date(dateS);
+                    //                     dateU.setHours(j);
+                    //                     var matrixUnit = {date: dateU, value: 1}
+                    //                     matrixData.push(matrixUnit);
+                    //                 }
+                    //
+                    //             }
+                    //
+                    //         }
+                    //     }
+                    //
+                    //     //render
+                    //     matrixData.forEach(function (valueObj) {
+                    //         //valueObj['date'] = timeFormat.parse(valueObj['timestamp']);
+                    //         var day = valueObj['day'] = monthDayFormat(valueObj['date']);
+                    //
+                    //         var dayData = dailyValueExtent[day] = (dailyValueExtent[day] || [1000, -1]);
+                    //         var value = valueObj['value'];
+                    //         dayData[0] = d3.min([dayData[0], value]);
+                    //         dayData[1] = d3.max([dayData[1], value]);
+                    //     });
+                    //
+                    //     dateExtent = d3.extent(matrixData, function (d) {
+                    //         return d.date;
+                    //     });
+                    //
+                    //     axisHeight = itemSize * (dayFormat(dateExtent[1]) - dayFormat(dateExtent[0]) + 1);
+                    //
+                    //     svg.attr('height', axisHeight + margin.top + margin.bottom);
+                    //
+                    //     //render axises
+                    //     yAxis.scale(yAxisScale.range([0, axisHeight]).domain([dateExtent[0], dateExtent[1]]));
+                    //     svg.append('g')
+                    //         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                    //         .attr('class', 'x axis')
+                    //         .call(xAxis)
+                    //         .append('text')
+                    //         .text('time')
+                    //         .attr('transform', 'translate(' + axisWidth + ',-10)');
+                    //
+                    //     svg.append('g')
+                    //         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                    //         .attr('class', 'y axis')
+                    //         .call(yAxis)
+                    //         .append('text')
+                    //         .text('date')
+                    //         .attr('transform', 'translate(-' + margin.left + ',' + axisHeight + ')');
+                    //
+                    //     //render heatmap rects
+                    //     dayOffset = dayFormat(dateExtent[0]);
+                    //     rect = heatmap.selectAll('rect')
+                    //         .data(matrixData)
+                    //         .enter().append('rect')
+                    //         .attr('width', cellSize)
+                    //         .attr('height', cellSize)
+                    //         .attr('y', function (d) {
+                    //             return itemSize * (dayFormat(d.date) - dayOffset);
+                    //         })
+                    //         .attr('x', function (d) {
+                    //             return hourFormat(d.date) * itemSize;
+                    //         })
+                    //         .attr('fill', '#ffffff');
+                    //
+                    //     rect.filter(function (d) {
+                    //             return d.value > 0;
+                    //         })
+                    //         .append('title')
+                    //         .text(function (d) {
+                    //             return monthDayFormat(d.date) + ' ' + d.value;
+                    //         });
+                    //
+                    //     renderColor();
+                    //
+                    //
+                    // }, function (data) {
+                    //     alert(data);
+                    // });
 
-                            for (var i = 0; i < eventArr.length; i++) {
-                                var dateStr = Number(eventArr[i].time + '000');
-                                var date = new Date(dateStr);
-                                var hour = date.getHours();
+                    var updateHeatMapWithEventData = function(data){
+                            var dataObj = JSON.parse(data);
+                            var matrixData = [];
+                            if (dataObj.length <= 0) return;
+                            for (var k = 0; k < dataObj.length; k++) {
+                                var eventArr = dataObj[k].data.Events;
 
-                                var dateS = date.toDateString();
-                                var dateUnit = new Date(dateS);
-                                dateUnit.setHours(hour);
+                                for (var i = 0; i < eventArr.length; i++) {
+                                    var dateStr = Number(eventArr[i].time + '000');
+                                    var date = new Date(dateStr);
+                                    var hour = date.getHours();
 
-                                var itemDate = matrixData.find(function (e) {
-                                    return e.date.getTime() == dateUnit.getTime();
-                                });
-                                if (itemDate) {
-                                    itemDate.value += 1;
-                                }
-                                else {
-                                    for(var j=0;j<24;j++){
-                                        var dateU = new Date(dateS);
-                                        dateU.setHours(j);
-                                        var matrixUnit = {date: dateU, value: 1}
-                                        matrixData.push(matrixUnit);
+                                    var dateS = date.toDateString();
+                                    var dateUnit = new Date(dateS);
+                                    dateUnit.setHours(hour);
+
+                                    var itemDate = matrixData.find(function (e) {
+                                        return e.date.getTime() == dateUnit.getTime();
+                                    });
+                                    if (itemDate) {
+                                        itemDate.value += 1;
+                                    }
+                                    else {
+                                        for(var j=0;j<24;j++){
+                                            var dateU = new Date(dateS);
+                                            dateU.setHours(j);
+                                            var matrixUnit = {date: dateU, value: 1}
+                                            matrixData.push(matrixUnit);
+                                        }
+
                                     }
 
                                 }
-
                             }
-                        }
 
-                        //render
-                        matrixData.forEach(function (valueObj) {
-                            //valueObj['date'] = timeFormat.parse(valueObj['timestamp']);
-                            var day = valueObj['day'] = monthDayFormat(valueObj['date']);
+                            //render
+                            matrixData.forEach(function (valueObj) {
+                                //valueObj['date'] = timeFormat.parse(valueObj['timestamp']);
+                                var day = valueObj['day'] = monthDayFormat(valueObj['date']);
 
-                            var dayData = dailyValueExtent[day] = (dailyValueExtent[day] || [1000, -1]);
-                            var value = valueObj['value'];
-                            dayData[0] = d3.min([dayData[0], value]);
-                            dayData[1] = d3.max([dayData[1], value]);
-                        });
-
-                        dateExtent = d3.extent(matrixData, function (d) {
-                            return d.date;
-                        });
-
-                        axisHeight = itemSize * (dayFormat(dateExtent[1]) - dayFormat(dateExtent[0]) + 1);
-
-                        svg.attr('height', axisHeight + margin.top + margin.bottom);
-
-                        //render axises
-                        yAxis.scale(yAxisScale.range([0, axisHeight]).domain([dateExtent[0], dateExtent[1]]));
-                        svg.append('g')
-                            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                            .attr('class', 'x axis')
-                            .call(xAxis)
-                            .append('text')
-                            .text('time')
-                            .attr('transform', 'translate(' + axisWidth + ',-10)');
-
-                        svg.append('g')
-                            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                            .attr('class', 'y axis')
-                            .call(yAxis)
-                            .append('text')
-                            .text('date')
-                            .attr('transform', 'translate(-' + margin.left + ',' + axisHeight + ')');
-
-                        //render heatmap rects
-                        dayOffset = dayFormat(dateExtent[0]);
-                        rect = heatmap.selectAll('rect')
-                            .data(matrixData)
-                            .enter().append('rect')
-                            .attr('width', cellSize)
-                            .attr('height', cellSize)
-                            .attr('y', function (d) {
-                                return itemSize * (dayFormat(d.date) - dayOffset);
-                            })
-                            .attr('x', function (d) {
-                                return hourFormat(d.date) * itemSize;
-                            })
-                            .attr('fill', '#ffffff');
-
-                        rect.filter(function (d) {
-                                return d.value > 0;
-                            })
-                            .append('title')
-                            .text(function (d) {
-                                return monthDayFormat(d.date) + ' ' + d.value;
+                                var dayData = dailyValueExtent[day] = (dailyValueExtent[day] || [1000, -1]);
+                                var value = valueObj['value'];
+                                dayData[0] = d3.min([dayData[0], value]);
+                                dayData[1] = d3.max([dayData[1], value]);
                             });
 
-                        renderColor();
+                            dateExtent = d3.extent(matrixData, function (d) {
+                                return d.date;
+                            });
 
+                            axisHeight = itemSize * (dayFormat(dateExtent[1]) - dayFormat(dateExtent[0]) + 1);
 
-                    }, function (data) {
-                        alert(data);
-                    });
+                            svg.attr('height', axisHeight + margin.top + margin.bottom);
+
+                            //render axises
+                            yAxis.scale(yAxisScale.range([0, axisHeight]).domain([dateExtent[0], dateExtent[1]]));
+                            svg.append('g')
+                                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                                .attr('class', 'x axis')
+                                .call(xAxis)
+                                .append('text')
+                                .text('time')
+                                .attr('transform', 'translate(' + axisWidth + ',-10)');
+
+                            svg.append('g')
+                                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                                .attr('class', 'y axis')
+                                .call(yAxis)
+                                .append('text')
+                                .text('date')
+                                .attr('transform', 'translate(-' + margin.left + ',' + axisHeight + ')');
+
+                            //render heatmap rects
+                            dayOffset = dayFormat(dateExtent[0]);
+                            rect = heatmap.selectAll('rect')
+                                .data(matrixData)
+                                .enter().append('rect')
+                                .attr('width', cellSize)
+                                .attr('height', cellSize)
+                                .attr('y', function (d) {
+                                    return itemSize * (dayFormat(d.date) - dayOffset);
+                                })
+                                .attr('x', function (d) {
+                                    return hourFormat(d.date) * itemSize;
+                                })
+                                .attr('fill', '#ffffff');
+
+                            rect.filter(function (d) {
+                                    return d.value > 0;
+                                })
+                                .append('title')
+                                .text(function (d) {
+                                    return monthDayFormat(d.date) + ' ' + d.value;
+                                });
+
+                            renderColor();
+                    };
+
+                    var eventType = scope.eventsType;
+                    switch (eventType){
+                        case "Trajectory":
+                        case "OD Pattern":break;
+                        case "Carries":
+                        case "Stop Events":updateHeatMapWithEventData(scope.data);break;
+                        case "Turn Events":
+                        case "Traffic Events":
+                        case "Low Speed Events":
+                    }
+
 
                     function initCalibration() {
                         d3.select('[role="calibration"] [role="example"]').select('svg')
@@ -896,6 +1024,179 @@ stavrDirts.directive('myDayHourHeatmap',['$compile','ActiveDataFactory',function
     }
 }]);
 
+stavrDirts.directive('myODStackBar',['$compile','ActiveDataFactory',function($compile,ActiveDataFactory){
+    return {
+        restrict : 'A',   
+        transclude: false,
+        controller:function($scope,$element,$transclude,$http){
+
+        },
+        link:{
+            pre:function(tElement,tAttrs,transclude){},
+            post:function(scope,iElement,iAttrs,controller){
+
+                var padding = {top: 40, right: 40, bottom: 40, left: 40};
+                var width = iElement.width();
+                var height = width*0.5;
+
+                iAttrs.$observe('myODStackBar',function () {
+
+
+                    var data  = scope.data;
+                    if(!data) return;
+                    var dataObj =  JSON.parse(data);
+                    if(dataObj.length===0) return;
+
+                    var district = [
+                        {name:"蔡甸区",coordinate:[113.7963975,30.32380375],inCount:0,outCount:0},
+                        {name:"东西湖区",coordinate:[114.1514074,30.50242458],inCount:0,outCount:0},
+                        {name:"汉阳区",coordinate:[114.222363,30.55609062],inCount:0,outCount:0},
+                        {name:"洪山区",coordinate:[114.3694585,30.5058025],inCount:0,outCount:0},
+                        {name:"黄陂区",coordinate:[114.2543917,30.73904945],inCount:0,outCount:0},
+                        {name:"江岸区",coordinate:[114.2983086,30.6341187],inCount:0,outCount:0},
+                        {name:"江汉区",coordinate:[114.2504723,30.61386643],inCount:0,outCount:0},
+                        {name:"江夏区",coordinate:[114.3810572,30.44082741],inCount:0,outCount:0},
+                        {name:"硚口区",coordinate:[114.2457669,30.58417434],inCount:0,outCount:0},
+                        {name:"青山区",coordinate:[114.397589,30.62502764],inCount:0,outCount:0},
+                        {name:"武昌区",coordinate:[114.325628,30.55697021],inCount:0,outCount:0},
+                        {name:"新洲区",coordinate:[114.5063689,30.71473348],inCount:0,outCount:0},
+                    ];
+
+                    var coordinates = d3.csv.parse(dataObj[0].data);
+                    for (var i = 0; i+1 < coordinates.length; i+=2) {
+                        var name1  = coordinates[i].name;
+                        var name2  = coordinates[i+1].name;
+                        var district1 = district.filter(function(e,i){return e.name==name1})[0];
+                        var district2 = district.filter(function(e,i){return e.name==name2})[0];
+                        district1.inCount++;
+                        district2.outCount++;
+                    }
+
+
+                    //Set up scales
+                    var xScale = d3.scale.ordinal()
+                        .domain(district.map(function(e){return e.name;}))
+                        .rangeRoundBands([0, width-padding.left-padding.right], .1);
+
+                    var yScale = d3.scale.linear()
+                        .domain([0,
+                            d3.max(district, function (d) {
+                                return d.inCount+d.outCount;
+                            })
+                        ])
+                        .range([height - padding.bottom - padding.top, 0]);
+
+                    var xAxis = d3.svg.axis()
+                        .scale(xScale)
+                        .orient("bottom");
+
+                    var yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .orient("left")
+                        .ticks(10);
+
+                    d3.select(iElement[0]).selectAll("svg").remove();
+                    //Create SVG element
+                    var svg = d3.select(iElement[0])
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height",height );
+
+                    // Add a group for each row of data
+                    var groups = svg.selectAll("g")
+                        .data(district)
+                        .enter()
+                        .append("rect")
+                        .attr("class","bar")
+                        .attr("x", function (d) {
+                            return xScale(d.name)+padding.left;
+                        })
+                        .attr("y", function (d) {
+                            return -yScale(d.inCount+d.outCount) + height-padding.top;
+                        })
+                        .attr("height", function (d) {
+                            return yScale(d.inCount+d.outCount);
+                        })
+                        .attr("width", 15)
+                        .style("fill","steelblue")
+                        .style("fill-opacity", 1);
+
+                    svg.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate(40," + (height - padding.bottom) + ")")
+                        .call(xAxis);
+
+
+                    svg.append("g")
+                        .attr("class", "y axis")
+                        .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
+                        .call(yAxis);
+
+                    // adding legend
+
+                    // var legend = svg.append("g")
+                    //     .attr("class", "legend")
+                    //     .attr("x", width - padding.right - 65)
+                    //     .attr("y", 25)
+                    //     .attr("height", 100)
+                    //     .attr("width", 100);
+                    //
+                    // legend.selectAll("g").data(district)
+                    //     .enter()
+                    //     .append('g')
+                    //     .each(function (d, i) {
+                    //         var g = d3.select(this);
+                    //         g.append("rect")
+                    //             .attr("x", width - padding.right - 65)
+                    //             .attr("y", i * 25 + 10)
+                    //             .attr("width", 10)
+                    //             .attr("height", 10)
+                    //             .style("fill", color_hash[String(i)][1]);
+                    //
+                    //         g.append("text")
+                    //             .attr("x", width - padding.right - 50)
+                    //             .attr("y", i * 25 + 20)
+                    //             .attr("height", 30)
+                    //             .attr("width", 100)
+                    //             .style("fill", color_hash[String(i)][1])
+                    //             .text(color_hash[String(i)][0]);
+                    //     });
+
+
+                    // y axis text
+                    svg.append("text")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", 0 - 5)
+                        .attr("x", 0 - (height / 2))
+                        .attr("dy", "1em")
+                        .text("Number of Events");
+
+                    // // x axis text
+                    // svg.append("text")
+                    //     .attr("class", "xtext")
+                    //     .attr("x", w / 2 - padding.left)
+                    //     .attr("y", h - 5)
+                    //     .attr("text-anchor", "middle")
+                    //     .text("Days");
+                    //
+                    // // title text
+                    // svg.append("text")
+                    //     .attr("class", "title")
+                    //     .attr("x", (w / 2))
+                    //     .attr("y", 20)
+                    //     .attr("text-anchor", "middle")
+                    //     .style("font-size", "16px")
+                    //     .style("text-decoration", "underline")
+                    //     .text("Number of Events per day.");
+
+
+                });
+            }
+        }
+    }
+}]);
+
+
 stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFactory','$compile', function($interval,MapViewerSever,ActiveDataFactory,$compile) {
     return {
         restrict : 'A',
@@ -946,6 +1247,20 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
 
             $scope.isUpdateCalendar = false;
 
+
+            $scope.isUpdateODStackBar = false;
+
+
+            $scope.$on("updateEventsQuery",function (evt,data) {
+               ActiveDataFactory.timeViewEventData = data;
+               $scope.eventsType = data.eventsType;
+               $scope.data = data.data;
+               $scope.isUpdateTimeView = !$scope.isUpdateTimeView;
+            });
+            var data = ActiveDataFactory.timeViewEventData;
+            $scope.eventsType = data.eventsType;
+            $scope.data = data.data;
+
         },
         link:{
                 pre: function (tElement,tAttrs,transclude) {
@@ -955,13 +1270,13 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
 
                     // Control tiemline  displayer
                     var margin = {top: 10, right: 30, bottom: 40, left: 30},
-                        width = iElement.width() * 0.65 - margin.left - margin.right,
+                        width = $(iElement.find("#timelineContainer")).width() - margin.left - margin.right,
                         parentHeight = 120,
                         height = parentHeight - margin.top - margin.bottom;
 
                     var timeLineBarDOM = iElement.find("#timaLineBar")[0];
                     var svg = d3.select(timeLineBarDOM).append("svg")
-                        .attr("width",  iElement.width() * 0.65 )
+                        .attr("width",  width+margin.left + margin.right)
                         .attr("height", parentHeight);
 
                     svg.append("defs").append("clipPath")
@@ -1052,8 +1367,123 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                         var hours = 60 * 60 * 1000;
                         EventData = [];
 
-                        ActiveDataFactory.isMapUpdateEvent = true;
-                        ActiveDataFactory.callEventData().then(function (data) {
+                        // ActiveDataFactory.isMapUpdateEvent = true;
+                        // ActiveDataFactory.callEventData().then(function (data) {
+                        //     var dataObj = JSON.parse(data);
+                        //     if(dataObj.length===0) return;
+                        //     var dataCount = [];
+                        //     var maxCount = 0;
+                        //     for (var k = 0; k < dataObj.length; k++) {
+                        //         var name = dataObj[k].data.Name;
+                        //         var eventArr = dataObj[k].data.Events;
+                        //         var event = {
+                        //             name: name,
+                        //             dates: []
+                        //         };
+                        //         if (eventArr.length <= 0) continue;
+                        //         for (var i = 0; i < eventArr.length; i++) {
+                        //             var dateStr = Number(eventArr[i].time + '000');
+                        //             var date = new Date(dateStr);
+                        //             var time = date.getTime();
+                        //             if (time < startTime) startTime = time;
+                        //             if (time > endTime) endTime = time;
+                        //             event.dates.push(date);
+                        //             var dateS   = date.toDateString();
+                        //             var itemDate = dataCount.find(function(e){ return e.date.toDateString() == dateS});
+                        //             if(itemDate){
+                        //                 itemDate.count +=1;
+                        //             }
+                        //             else{
+                        //                 var bar = { date:date,count:1};
+                        //                 dataCount.push(bar);
+                        //             }
+                        //             if(itemDate && (itemDate.count > maxCount)) maxCount = itemDate.count ;
+                        //         }
+                        //         EventData.push(event);
+                        //     }
+                        //
+                        //
+                        //     renderTimeGraph(EventData);
+                        //
+                        //     dataCount.sort(function(a,b){
+                        //         if(a.date > b.date){
+                        //             return 1;
+                        //         }
+                        //         else{
+                        //             return -1;
+                        //         }
+                        //     });
+                        //
+                        //     scope.x.domain([new Date(startTime),new Date(endTime)]);//d3.extent(dataCount.map(function(d){return d.date;})));
+                        //     scope.y.domain([0,maxCount]);
+                        //     xAxis = d3.svg.axis().scale( scope.x).orient("bottom"),
+                        //         yAxis = d3.svg.axis().scale(scope.y).orient("left");
+                        //     scope.brush = d3.svg.brush()
+                        //         .x(scope.x)
+                        //         .on("brush", brushed)
+                        //         .on("brushstart", brushStart);
+                        //
+                        //
+                        //
+                        //     context.selectAll("path").remove();
+                        //     context.selectAll("g").remove();
+                        //     context.append("path")
+                        //         .datum(dataCount)
+                        //         .attr("class", "line")
+                        //         .attr("d", area);
+                        //
+                        //     context.append("g")
+                        //         .attr("class", "x axis")
+                        //         .attr("transform", "translate(0," + height + ")")
+                        //         .call(xAxis);
+                        //
+                        //     context.append("g")
+                        //         .attr("class", "y axis")
+                        //         .call(yAxis);
+                        //
+                        //     context.append("g")
+                        //         .attr("class", "x brush")
+                        //         .call(scope.brush)
+                        //         .selectAll("rect")
+                        //         .attr("y", -6)
+                        //         .attr("height", height + 7);
+                        //
+                        //
+                        //     scope.isUpdateCalendar =  !scope.isUpdateCalendar;
+                        //
+                        // }, function (data) {
+                        //     alert(data);
+                        // });
+
+                        var updateTimeViewWithTrajectoryData =  function (data) {
+
+                            scope.x.domain([new Date(ActiveDataFactory.startDate),new Date( ActiveDataFactory.endDate)]);//d3.extent(dataCount.map(function(d){return d.date;})));
+                            xAxis = d3.svg.axis().scale( scope.x).orient("bottom"),
+                            scope.brush = d3.svg.brush()
+                                .x(scope.x)
+                                .on("brush", brushed)
+                                .on("brushstart", brushStart);
+
+                            context.selectAll("path").remove();
+                            context.selectAll("g").remove();
+
+                            context.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+
+                            context.append("g")
+                                .attr("class", "x brush")
+                                .call(scope.brush)
+                                .selectAll("rect")
+                                .attr("y", -6)
+                                .attr("height", height + 7);
+
+                        };
+
+
+                        //updateEventsData WithPointEvents
+                        var updateTimeViewWithPointEventsData = function (data) {
                             var dataObj = JSON.parse(data);
                             if(dataObj.length===0) return;
                             var dataCount = [];
@@ -1135,42 +1565,65 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
 
 
                             scope.isUpdateCalendar =  !scope.isUpdateCalendar;
+                        };
 
-                        }, function (data) {
-                            alert(data);
-                        });
+                        var updateTimeViewWithODData = function(data){
+                            updateTimeViewWithTrajectoryData(data);
+                            
+                            //draw OD 
+                            scope.isUpdateODStackBar = !scope.isUpdateODStackBar;
+                            
+                        };
+
+
+
+                        var eventType = scope.eventsType;
+                        switch (eventType){
+                            case "Trajectory":updateTimeViewWithTrajectoryData(scope.data);break;
+                            case "OD Pattern":updateTimeViewWithODData(scope.data);break;
+                            case "Carries":
+                            case "Stop Events":updateTimeViewWithPointEventsData(scope.data);break;
+                            case "Turn Events":
+                            case "Traffic Events":
+                            case "Low Speed Events":
+                        }
+
+
 
                     });
 
 
 
                     var resizeView = function(){
-                        var newWidth = iElement.width() * 0.65 - margin.left - margin.right;
+                        var newWidth = $(iElement.find("#timelineContainer")).width() - margin.left - margin.right;
                         if(newWidth<=0 || width == newWidth) return;
                         width = newWidth;
                         height = parentHeight - margin.top - margin.bottom;
-                        svg.attr("width",  iElement.width() * 0.65 );
-                        svg.select("defs").select("clipPath")
-                            .select("rect")
-                            .attr("width", width)
-                            .attr("height", height);
-                        scope.x = d3.time.scale().range([0, width]),
-                            scope.y = d3.scale.linear().range([height, 0]);
-                        scope.x.domain([new Date(startTime),new Date(endTime)]);
-                        scope.brush = d3.svg.brush()
-                            .x(scope.x)
-                            .on("brush", brushed)
-                            .on("brushstart", brushStart);
+                        // svg.attr("width",  width + margin.left + margin.right );
+                        // svg.select("defs").select("clipPath")
+                        //     .select("rect")
+                        //     .attr("width", width)
+                        //     .attr("height", height);
+                        // scope.x = d3.time.scale().range([0, width]),
+                        //     scope.y = d3.scale.linear().range([height, 0]);
+                        // scope.x.domain([new Date(startTime),new Date(endTime)]);
+                        // scope.brush = d3.svg.brush()
+                        //     .x(scope.x)
+                        //     .on("brush", brushed)
+                        //     .on("brushstart", brushStart);
 
-                        renderTimeGraph(EventData);
+                        scope.isUpdateTimeView = !scope.isUpdateTimeView;
+
+
+                        //renderTimeGraph(EventData);
                     };
 
                     var timer;
                     var updateScene = function () {
                         resizeView();
-                        // timer = setTimeout(updateScene, 1000);
+                        timer = setTimeout(updateScene, 1000);
                     };
-                    //updateScene();
+                    updateScene();
 
                     //Animation button control
                     var timerAinmation = null, speedAnimation = 100;
