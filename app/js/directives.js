@@ -134,7 +134,9 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
         transclude: true,
         controller: function ($scope,$element,$transclude,$http) {
            
-                
+            $scope.$on("clearTrajectoryFeatures",function(){
+                MapViewerSever.trajectoryFeatures.clear();
+            })
         },
         link:{
             pre: function (scope,iElement,iAttrs,controller) {
@@ -333,90 +335,152 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                     }
                     if(ActiveDataFactory.isMapUpdateEvent && ActiveDataFactory.isSelectDataExist() ){
                         ActiveDataFactory.callEventData().then(function(data){
-                            var dataObj = JSON.parse(data);
-                            if(dataObj.length===0) return;
-                            var typeFeature = "MultiPoint";
-                            var d3Color = d3.scale.category10();
-                            var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
-                            for(var k=0;k<dataObj.length;k++){
-                                var events = dataObj[k].data.Events;
-                                for(var i=0;i<events.length;i++) {
-                                    var event = events[i];
-                                    var coords = [];
-                                    coords[0] = event.lon;
-                                    coords[1] = event.lat;
-                                    var c = transformFn(coords, undefined, coords.length);
 
-                                    var color = d3Color(event.status);
-
-                                    var feature = new ol.Feature({
-                                        geometry: new ol.geom.Point(c),
-                                        style: new ol.style.Style({
-                                            stroke: new ol.style.Stroke({
-                                                color: color,
-                                                width: 2
-                                            }),
-                                            // fill: new ol.style.Fill({
-                                            //     color: featureObj.colorLine
-                                            // }),
-                                            image: new ol.style.Circle({
-                                                radius: 7,
-                                                fill: new ol.style.Fill({
-                                                    color: color
-                                                })
-                                            })
-                                        })
-                                    });
-
-                                    var alpColor = ol.color.asArray(color);
-                                    alpColor = alpColor.slice();
-                                    alpColor[3] = 0.5;
-
-                                    // feature.set('name',featureObj.carNumber);
-                                    feature.set('color', alpColor);
-                                    feature.set('type', typeFeature);
-                                    feature.set('time', +event.time);
-                                    //feature.set('date',"2013-3-28");
-                                    feature.setStyle(new ol.style.Style({
-                                        image: new ol.style.Circle({
-                                            radius: 5,
-                                            // fill: new ol.style.Fill({
-                                            //     color: color
-                                            // }),
-                                            stroke: new ol.style.Stroke({
-                                                color: color,
-                                                width: 3
-                                            })
-                                        })
-                                    }));
-
-                                    MapViewerSever.eventsFeatures.push(feature);
-                                }
+                            if(ActiveDataFactory.eventsType=="OD Pattern"){
+                                updateMapWithODdataFun(data);
                             }
+                            else {
+                                updateMapWithPointEvent(data);
+                            }
+
 
                         },function(e){alert(e);});
                     }
 
 
+                    //Stop event and Carries event
+                    var updateMapWithPointEvent = function(data){
+                        var dataObj = JSON.parse(data);
+                        if(dataObj.length===0) return;
+                        var typeFeature = "MultiPoint";
+                        var d3Color = d3.scale.category10();
+                        var transformFn = ol.proj.getTransform('EPSG:4326', 'EPSG:3857');
+                        for(var k=0;k<dataObj.length;k++){
+                            var events = dataObj[k].data.Events;
+                            for(var i=0;i<events.length;i++) {
+                                var event = events[i];
+                                var coords = [];
+                                coords[0] = event.lon;
+                                coords[1] = event.lat;
+                                var c = transformFn(coords, undefined, coords.length);
+
+                                var color = d3Color(event.status);
+
+                                var feature = new ol.Feature({
+                                    geometry: new ol.geom.Point(c),
+                                    style: new ol.style.Style({
+                                        stroke: new ol.style.Stroke({
+                                            color: color,
+                                            width: 2
+                                        }),
+                                        // fill: new ol.style.Fill({
+                                        //     color: featureObj.colorLine
+                                        // }),
+                                        image: new ol.style.Circle({
+                                            radius: 7,
+                                            fill: new ol.style.Fill({
+                                                color: color
+                                            })
+                                        })
+                                    })
+                                });
+
+                                var alpColor = ol.color.asArray(color);
+                                alpColor = alpColor.slice();
+                                alpColor[3] = 0.5;
+
+                                // feature.set('name',featureObj.carNumber);
+                                feature.set('color', alpColor);
+                                feature.set('type', typeFeature);
+                                feature.set('time', +event.time);
+                                //feature.set('date',"2013-3-28");
+                                feature.setStyle(new ol.style.Style({
+                                    image: new ol.style.Circle({
+                                        radius: 5,
+                                        // fill: new ol.style.Fill({
+                                        //     color: color
+                                        // }),
+                                        stroke: new ol.style.Stroke({
+                                            color: color,
+                                            width: 3
+                                        })
+                                    })
+                                }));
+
+                                MapViewerSever.eventsFeatures.push(feature);
+                            }
+                        }
+                    }
 
                     // ODLines
-                    {
+                    var updateMapWithODdataFun = function(data){
+                        var dataObj =  JSON.parse(data);
+                        if(dataObj.length===0) return;
+
+                        var district = [
+                            {name:"蔡甸区",coordinate:[113.7963975,30.32380375],index:0,count:0},
+                            {name:"东西湖区",coordinate:[114.1514074,30.50242458],index:1,count:0},
+                            {name:"汉阳区",coordinate:[114.222363,30.55609062],index:2,count:0},
+                            {name:"洪山区",coordinate:[114.3694585,30.5058025],index:3,count:0},
+                            {name:"黄陂区",coordinate:[114.2543917,30.73904945],index:4,count:0},
+                            {name:"江岸区",coordinate:[114.2983086,30.6341187],index:5,count:0},
+                            {name:"江汉区",coordinate:[114.2504723,30.61386643],index:6,count:0},
+                            {name:"江夏区",coordinate:[114.3810572,30.44082741],index:7,count:0},
+                            {name:"硚口区",coordinate:[114.2457669,30.58417434],index:8,count:0},
+                            {name:"青山区",coordinate:[114.397589,30.62502764],index:9,count:0},
+                            {name:"武昌区",coordinate:[114.325628,30.55697021],index:10,count:0},
+                            {name:"新洲区",coordinate:[114.5063689,30.71473348],index:11,count:0}
+                            ];
+
+                        var lines = [];
                         var map = MapViewerSever.map;
                         var features = new Array();
-                        var coordinates = [[114.224955, 30.5929],[114.237216,30.610683],[114.269286,30.62176],[114.269286,30.62176],[114.300796,30.604683]];
+
+                        var coordinates = d3.csv.parse(dataObj[0].data);
                         var transformedCoordinates = new Array();
 
-                        for (var i = 0; i < coordinates.length; ++i) {
-                            transformedCoordinates[i] = ol.proj.transform(coordinates[i], 'EPSG:4326', 'EPSG:3857');
-                            features[i] = new ol.Feature(new ol.geom.Point(transformedCoordinates[i]));
+                        for (var i = 0; i < district.length; ++i) {
+                            var coord = district[i].coordinate;
+                            transformedCoordinates[i] = ol.proj.transform(coord, 'EPSG:4326', 'EPSG:3857');
+                           // features[i] = new ol.Feature(new ol.geom.Point(transformedCoordinates[i]));
+                            district[i].coordinate = transformedCoordinates[i];
                         }
+
+                        for (var i = 0; i+1 < coordinates.length; i+=2) {
+
+                            var name1  = coordinates[i].name;
+                            var name2  = coordinates[i+1].name;
+                            if(name1==name2) continue;
+                            var district1 = district.filter(function(e,i){return e.name==name1})[0];
+                            var district2 = district.filter(function(e,i){return e.name==name2})[0];
+                            district1.count++;
+                            district2.count++;
+                            var startPoint = district1.coordinate;
+                            var endPoint = district2.coordinate;
+
+                            if(lines[district1.index*100 + district2.index ]){
+                                lines[district1.index*100 + district2.index ].count++;
+                            }
+                            else{
+                                lines[district1.index*100 + district2.index ] = {startPoint:startPoint,endPoint:endPoint,count:1}
+                            }
+                        }
+
+
+                        var pointRadiusLevel =  d3.scale.threshold().domain([10,100,900,2000]).range([2,10,15,24]);
+                        for(var i=0;i<features.length;i++){
+                            features[i] = new ol.Feature(new ol.geom.Point(district[i].coordinate));
+                            features[i].set("count",district[i].count);
+
+                        }
+
 
                         var source = new ol.source.Vector({
                             features: features
                         });
 
                         var clusterSource = new ol.source.Cluster({
-                            distance: 40,
+                            distance: 10,
                             source: source
                         });
 
@@ -429,7 +493,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                 if (!style) {
                                     style = [new ol.style.Style({
                                         image: new ol.style.Circle({
-                                            radius: 10,
+                                            radius:pointRadiusLevel(feature.get('features')[0].get("count")),
                                             stroke: new ol.style.Stroke({
                                                 color: '#fff'
                                             }),
@@ -438,7 +502,7 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
                                             })
                                         }),
                                         text: new ol.style.Text({
-                                            text: size.toString(),
+                                            text:"",
                                             fill: new ol.style.Fill({
                                                 color: '#fff'
                                             })
@@ -452,68 +516,71 @@ stavrDirts.directive('myMapChart', ['$interval','MapViewerSever','ActiveDataFact
 
                         map.addLayer(clusters);
 
+
                         var vectorLine = new ol.source.Vector({});
 
-                        for (var i = 1; i < transformedCoordinates.length; i++) {
-                            var startPoint = transformedCoordinates[0];
-                            var endPoint = transformedCoordinates[i];
-                            var lineArray = [startPoint, endPoint];
+                        var lineWidthLevel =  d3.scale.threshold().domain([100,500,1000,2000]).range([2,4,6,8,10]);
+                        for(var i in lines){
+                            var line = lines[i];
+                            var lineArray = [line.startPoint, line.endPoint];
                             var featureLine = new ol.Feature({
                                 geometry: new ol.geom.LineString(lineArray)
                             });
-
+                            var colorLine = [168,221,181,0.7];
                             var lineStyle = new ol.style.Style({
                                 fill: new ol.style.Fill({
-                                    color: '#00FF00',
+                                    color: '#00ff00',
                                     weight: 4
                                 }),
                                 stroke: new ol.style.Stroke({
-                                    color: '#00FF00',
+                                    color: '#00ff00',
                                     width: 2
                                 })
                             });
                             featureLine.setStyle(lineStyle);
                             vectorLine.addFeature(featureLine);
-                            var firstPoint = coordinates[0];
-                            var secondPoint = coordinates[i];
-                            var slope = ((secondPoint[1] - firstPoint[1]) / (secondPoint[0] - firstPoint[0]));
+                            var firstPoint = line.startPoint;
+                            var secondPoint = line.endPoint;
+                            var slope = (Math.abs(secondPoint[0] - firstPoint[0])/Math.abs(secondPoint[1] - firstPoint[1]));
                             var angle = Math.atan(slope);
                             var rotation;
 
                             //Shifting the graph Origin to point of start point
-                            secondPoint[0] = secondPoint[0] - firstPoint[0];
-                            secondPoint[1] = secondPoint[1] - firstPoint[1];
+                            var lonDelta = secondPoint[0] - firstPoint[0];
+                            var latDelta = secondPoint[1] - firstPoint[1];
                             //Fourth quadrant
-                            if (secondPoint[0] > 0 && secondPoint[1] < 0) {
-                                rotation = (Math.PI / 2 - angle);
+                            if (lonDelta > 0 && latDelta < 0) {
+                                rotation =  -(Math.PI+angle);
                             }
                             //Second quadrant
-                            else if (secondPoint[0] < 0 && secondPoint[1] > 0) {
-                                rotation = -(Math.PI / 2 + angle);
+                            else if (lonDelta < 0 && latDelta > 0) {
+                                rotation = -angle;
                             }
                             //Third quadrant
-                            else if (secondPoint[0] < 0 && secondPoint[1] < 0) {
-                                rotation = 3 * Math.PI / 2 - angle;
+                            else if (lonDelta < 0 && latDelta < 0) {
+                                rotation = Math.PI + angle;
                             }
                             //First quadrant
-                            else if (secondPoint[0] > 0 && secondPoint[1] > 0) {
+                            else if (lonDelta > 0 && latDelta > 0) {
                                 rotation = angle;
                             }
                             var iconStyle = new ol.style.Style({
                                 image: new ol.style.Icon(({
                                     anchorXUnits: 'fraction',
                                     anchorYUnits: 'pixels',
-                                    opacity: 0.75,
+                                    opacity: 0.65,
                                     src: 'img/arrow2.png',
                                     rotation: rotation
                                 }))
                             });
                             var iconFeature = new ol.Feature({
-                                geometry: new ol.geom.Point(endPoint)
+                                geometry: new ol.geom.Point(secondPoint)
                             });
                             iconFeature.setStyle(iconStyle);
                             vectorLine.addFeature(iconFeature);
-                        }
+
+                        };
+
                         var vectorLayer = new ol.layer.Vector({
                             source: vectorLine
                         });
@@ -985,6 +1052,7 @@ stavrDirts.directive('myLineChart', ['$interval','MapViewerSever','ActiveDataFac
                         var hours = 60 * 60 * 1000;
                         EventData = [];
 
+                        ActiveDataFactory.isMapUpdateEvent = true;
                         ActiveDataFactory.callEventData().then(function (data) {
                             var dataObj = JSON.parse(data);
                             if(dataObj.length===0) return;

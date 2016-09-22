@@ -173,14 +173,16 @@ stavrCtrl.controller('ContentCtrl',['$scope','$uibModal','ActiveDataFactory',fun
         $scope.isUpdateMapView =  !$scope.isUpdateMapView ;
         $scope.isUpdateRelationView = !$scope.isUpdateRelationView;
         $scope.isUpdateTimeView =  !$scope.isUpdateTimeView;
+        
         $scope.isUpdateStackView = !$scope.isUpdateStackView;
 
     };
 
 
     $scope.ClearResult = function () {
+        
+        $scope.$broadcast("clearTrajectoryFeatures");
 
-        MapViewerSever.trajectoryFeatures.clear();
         ActiveDataFactory.clearActiveData();
 
         $scope.isSelectedDataTable = !$scope.isSelectedDataTable;
@@ -1689,9 +1691,9 @@ stavrCtrl.controller('CrossFilterCtrl',['$scope','ActiveDataFactory',function ($
                 .group(dates)
                 .round(d3.time.day.round)
                 .x(d3.time.scale()
-                    .domain([new Date(2015, 0, 1), new Date(2015, 12, 31)])
-                    .rangeRound([0, 10 * 90]))
-                .filter([new Date(2015, 0, 1), new Date(2015, 12, 31)])
+                    .domain([new Date(2013, 0, 1), new Date(2013, 0, 31)])
+                    .rangeRound([0, 500]))
+                .filter([new Date(2013, 0, 1), new Date(2013, 0, 31)])
 
         ];
 
@@ -1734,7 +1736,7 @@ stavrCtrl.controller('CrossFilterCtrl',['$scope','ActiveDataFactory',function ($
 
             return new Date(
                 d.substring(0, 4),
-                d.substring(4, 6),
+                +d.substring(4, 6)-1,
                 d.substring(6, 8),
                 d.substring(8, 10));
         }

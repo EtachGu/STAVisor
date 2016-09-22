@@ -171,7 +171,7 @@ stavrServices.factory('MapViewerSever', function () {
             view: new ol.View({
                 center: ol.proj.transform([114.34500, 30.59389], 'EPSG:4326', 'EPSG:3857'),
                 zoom: 11,
-                minZoom: 10
+                minZoom: 2
 
             })
         });
@@ -665,6 +665,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
             var url= "";
             switch (service.eventsType){
+                case "OD Pattern":url="mbar/ODData.csv";break;
                 case "Carries": url = "http://localhost:8080/DataVisualor/ODEventServletJson2?"+
                     "TID=&"+
                     "TOwner=&"+
@@ -819,7 +820,6 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
 
 
         var deferred = $q.defer();
-        if(!service.isMapUpdateTrajectory) return deferred.promise;
 
         $http.get(url,{cache:true}).success(function (data) {
             deferred.resolve(data);
@@ -827,7 +827,7 @@ stavrServices.factory('ActiveDataFactory',function ($http,$q) {
             deferred.reject('There was an error');
         });
 
-        service.isMapUpdateTrajectory = false;
+
         return deferred.promise;
     };
 
